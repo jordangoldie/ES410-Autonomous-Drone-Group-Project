@@ -58,10 +58,12 @@ class Drone:
         return distance
 
     def get_current_location(self):
+
         current_location = self.vehicle.location.global_relative_frame
         return current_location
 
     def get_plant_location(self, lat, lon, alt):
+
         plant_location = dk.LocationGlobalRelative(lat, lon, alt)
         return plant_location
 
