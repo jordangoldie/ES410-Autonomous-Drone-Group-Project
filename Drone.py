@@ -74,6 +74,7 @@ class Drone:
         self.vehicle.simple_goto(location)
 
     def return_home(self):
+
         self.vehicle.mode = VehicleMode("RTL")
 
 
