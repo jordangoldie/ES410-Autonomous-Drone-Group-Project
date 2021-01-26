@@ -73,11 +73,13 @@ class Drone:
         print("Flying towards point")
         self.vehicle.simple_goto(location)
 
-    def wait(self, wait_time):
-        time.sleep(wait_time)
+    def plant_wait(self, plant_time):
+        for i in range(plant_time):
+            print("planting...")
+            time.sleep(1)
 
-    def guided(self):
-        self.vehicle.mode = VehicleMode("GUIDED")
+    def set_plant_flag(self):
+        return 1
 
     def return_home(self):
 

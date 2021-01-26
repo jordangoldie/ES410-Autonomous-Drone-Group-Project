@@ -10,7 +10,9 @@ longs = [149.16401228, 149.16345636, 149.16293594, 149.16460797, 149.16399818]
 alt = 4
 airspeed = 5
 
-plant_count = 5
+plant_count = 3
+plant_flag = 0
+plant_time = 5
 
 Hex.arm_and_takeoff(alt)
 
@@ -24,5 +26,10 @@ for i in range(plant_count):
         time.sleep(1)
         distance = Hex.distance_to_point_m(plant_location)
         print(distance)
+
+    plant_flag = Hex.set_plant_flag()
+    print("plant flag:", plant_flag)
+    Hex.plant_wait(5)
+
 
 Hex.return_home()
