@@ -73,6 +73,12 @@ class Drone:
         print("Flying towards point")
         self.vehicle.simple_goto(location)
 
+    def wait(self, wait_time):
+        time.sleep(wait_time)
+
+    def guided(self):
+        self.vehicle.mode = VehicleMode("GUIDED")
+
     def return_home(self):
 
         self.vehicle.mode = VehicleMode("RTL")
