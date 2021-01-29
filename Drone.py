@@ -58,17 +58,26 @@ class Drone:
         return distance
 
     def get_current_location(self):
-
         current_location = self.vehicle.location.global_relative_frame
         return current_location
 
-    def get_plant_location(self, lat, lon, alt):
+    def get_velocity(self):
+        velocity = self.vehicle.velocity
+        return velocity
 
+    def get_airspeed(self):
+        airspeed = self.vehicle.airspeed
+        return airspeed
+
+    def get_ground_speed(self):
+        ground_speed = self.vehicle.groundspeed
+        return ground_speed
+
+    def get_plant_location(self, lat, lon, alt):
         plant_location = dk.LocationGlobalRelative(lat, lon, alt)
         return plant_location
 
     def fly_to_point(self, location, airspeed):
-
         self.vehicle.airspeed = airspeed
         print("Flying towards point")
         self.vehicle.simple_goto(location)
@@ -82,7 +91,6 @@ class Drone:
         return 1
 
     def return_home(self):
-
         self.vehicle.mode = VehicleMode("RTL")
 
 

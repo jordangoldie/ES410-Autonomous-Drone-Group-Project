@@ -1,4 +1,5 @@
 from Drone import Drone
+from data_logging import DataLogging
 import time
 
 Hex = Drone("127.0.0.1:14550")
@@ -14,6 +15,10 @@ plant_count = 3
 plant_flag = 0
 plant_time = 5
 
+InFlightLogging = DataLogging()
+InFlightLogging.PrepLogging()
+InFlightLogging.InfoLogging(Hex)
+
 Hex.arm_and_takeoff(alt)
 
 for i in range(plant_count):
@@ -26,6 +31,7 @@ for i in range(plant_count):
         time.sleep(1)
         distance = Hex.distance_to_point_m(plant_location)
         print(distance)
+        InFlightLogging.InfoLogging(Hex)
 
     plant_flag = Hex.set_plant_flag()
     print("plant flag:", plant_flag)

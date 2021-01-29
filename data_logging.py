@@ -6,33 +6,36 @@
 # Description:
 
 from datetime import datetime
+import dronekit
 import os
 # Havent implemented use of LEDs (gpiozero - simple interface to GPIO devices with Raspberry Pi)
 # https://gpiozero.readthedocs.io/en/stable/
 import time # for time.sleep(seconds)
 # from dronekit import connect # NEEDED?
 from collections import OrderedDict
-from Drone import Drone # IMPORT JORDANS FILE
-
+from Drone import Drone # IMPORT JORDANS FI
+import dronekit as dk
 class DataLogging:
     def __init__ (self):
         self.data_file = None
         self.data = None
+
     def PrepLogging(self):
         # Save and open file, write file header
         self.data_file = open("datafile_" + datetime.now().strftime("%d-%m-%y_%H-%M-%S") + ".csv", "a+")
         self.data_file.write("Logging started at " + datetime.now().strftime("%d-%m-%y at %H:%M:%S\n"))
         self.data_file.write("Timestamp, Longitude, Latitude, Altitude, Velocity, Groundspeed, Airspeed, Current, Voltage\n")
-    def InfoLogging(self):
+
+    def InfoLogging(self, Hex):
         self.data = OrderedDict()
-        
+        print()
         self.data["Timestamp"] = datetime.now().strftime("%H:%M:%S.%f")
-        self.data["Location lon"] = str(Hex.get_current_location.lon)
-        self.data["Location lat"] = str(Hex.get_current_location.lat)
-        self.data["Location alt"] = str(Hex.get_current_location.alt)
-        self.data["Velocity"] = str(Hex.velocity)
-        self.data["Groundspeed"] = str(Hex.groundspeed)
-        self.data["Airspeed"] = str(Hex.airspeed)
+        self.data["Location lon"] = str(Hex.get_current_location().lon)
+        self.data["Location lat"] = str(Hex.get_current_location().lat)
+        self.data["Location alt"] = str(Hex.get_current_location().alt)
+        self.data["Velocity"] = str(Hex.get_velocity())
+        self.data["Ground speed"] = str(Hex.get_ground_speed())
+        self.data["Airspeed"] = str(Hex.get_airspeed())
         self.data["Current"] = str(0)
         self.data["Voltage"] = str(0)
         
