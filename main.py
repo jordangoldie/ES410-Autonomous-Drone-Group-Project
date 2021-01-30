@@ -32,6 +32,8 @@ for i in range(plant_count):
         distance = Hex.distance_to_point_m(plant_location)
         print(distance)
         InFlightLogging.InfoLogging(Hex)
+        attitude = Hex.get_attitude()
+        print(attitude.roll, attitude.pitch, attitude.yaw)
 
     plant_flag = Hex.set_plant_flag()
     print("plant flag:", plant_flag)

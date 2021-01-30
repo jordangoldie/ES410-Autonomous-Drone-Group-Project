@@ -73,6 +73,10 @@ class Drone:
         ground_speed = self.vehicle.groundspeed
         return ground_speed
 
+    def get_attitude(self):
+        attitude = self.vehicle.attitude
+        return attitude
+
     def get_plant_location(self, lat, lon, alt):
         plant_location = dk.LocationGlobalRelative(lat, lon, alt)
         return plant_location

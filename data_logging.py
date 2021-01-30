@@ -24,7 +24,8 @@ class DataLogging:
         # Save and open file, write file header
         self.data_file = open("datafile_" + datetime.now().strftime("%d-%m-%y_%H-%M-%S") + ".csv", "a+")
         self.data_file.write("Logging started at " + datetime.now().strftime("%d-%m-%y at %H:%M:%S\n"))
-        self.data_file.write("Timestamp, Longitude, Latitude, Altitude, Velocity, Groundspeed, Airspeed, Current, Voltage\n")
+        self.data_file.write("Timestamp, Longitude, Latitude, Altitude, Roll, Pitch, Yaw, "
+                             "Velocity, Groundspeed, Airspeed, Current, Voltage\n")
 
     def InfoLogging(self, Hex):
         self.data = OrderedDict()
@@ -33,6 +34,9 @@ class DataLogging:
         self.data["Location lon"] = str(Hex.get_current_location().lon)
         self.data["Location lat"] = str(Hex.get_current_location().lat)
         self.data["Location alt"] = str(Hex.get_current_location().alt)
+        self.data["Roll"] = str(Hex.get_attitude().roll)
+        self.data["Pitch"] = str(Hex.get_attitude().pitch)
+        self.data["Yaw"] = str(Hex.get_attitude().yaw)
         self.data["Velocity"] = str(Hex.get_velocity())
         self.data["Ground speed"] = str(Hex.get_ground_speed())
         self.data["Airspeed"] = str(Hex.get_airspeed())
