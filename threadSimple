@@ -1,0 +1,59 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Feb  1 10:44:02 2021
+
+@author: mckay
+"""
+
+import threading as td
+import time
+
+def main():
+        
+    for i in range(20):
+        print('1')
+        time.sleep(0.1)
+    return
+  
+    
+def secondary():
+        
+    for i in range(20): 
+        print('2')
+        time.sleep(0.1)
+    return
+
+def thirdCount():
+    
+    for i in range(20):
+        print('3')
+        time.sleep(0.1)
+        
+
+t = time.time()
+t1 = td.Thread(target=main)
+t2 = td.Thread(target=secondary)
+t3 = td.Thread(target=thirdCount)
+
+t1.start()
+t2.start()
+t3.start()
+
+t1.join()
+t2.join()
+t3.join()
+
+
+print('Time Taken: ' + str(round(time.time() - t,3)))
+tValue = 0.1*3*25
+print('Computed Time Taken: ' + str(round(time.time()-t,3)-tValue))
+
+
+#Run the code and you will see a random print out order.
+#They clearly run simultaeneously, but no real way I can see to know which one
+#Is when and how to predict. Further line break as seen also appears random
+#As it sits code is simple and therefore quick to run see penultimate 
+#output line
+#However will complicated code mess with this?
+#Final line shows that waiting for all three functions is clearly being run
+#at the same time This is a good thing for the threading ability. 
