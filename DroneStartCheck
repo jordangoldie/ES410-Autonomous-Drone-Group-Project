@@ -1,0 +1,134 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Feb  1 09:18:48 2021
+
+@author: mckay
+"""
+
+import dronekit
+import time
+import serial
+import os
+
+class starterCheck:
+    
+    def __init__(self, connection_str):
+        try:
+            self.vehicle = dronekit.connect('connectionIP', waitReady=True)
+        except dronekit.APIException:
+            #Timeout
+            print('Timeout')
+            return
+        except OSError:  
+            # Bad TTY connection
+            print('No serial exists!')
+            return
+        except: 
+            # Other error
+            return
+        else:
+            #Success
+            self.initSuccessful = True
+            print('Connection Established')
+    
+            
+    def setup(self):
+        
+        while not self.vehicle.is_armable:
+            print('Waiting for vehicle to initialise...')
+            time.sleep(1)
+
+        print('Arming motors')
+        self.vehicle.mode = dronekit.VehicleMode('GUIDED')
+        self.vehicle.armed = True
+        
+        while not self.vehicle.armed:
+            print('Waiting for arming...')
+            time.sleep(1)
+        print|('Vehicle is armed')
+        
+        #Arming set's home location but altitude reads 0. 
+        self.RTL_ALT_FINAL = 1 
+        #When drone returns to home, it hovers at 1m altitude
+        #Reset seed pod count to 50
+        self.seedPodCount = 50
+        return 
+        
+    def groundControlChecks(self):
+        
+        #Based on last year believe the telemetry for wireless connectio
+        #takes the HC-12 route, which they said is conencted to pins:
+        #GPIO Rx/Tx which is accessed with dev/ttsyS0, may change for us
+        self.ser = serial.Serial('/dev/ttyS0', 9600, timeout=0.1)
+        if self.ser.is_open:
+            self.initSuccessful = True
+        else:
+            self.initSuccessful = False
+    
+        handshake = False
+        print('Starting handshake with ground control')
+        while not handshake:
+            #Sending "Online" message to the ground control 
+            self.ser.write('Online\n'.encode('utf-8'))
+            time.sleep(0.5)
+            handshakeResponse = self.read_message()
+            if handshakeResponse is None:
+                continue
+            if handshakeResponse[:10] == 'Online':
+                #Does Ground Control send "Online" message
+                # Extract the time sent from the GCS
+                epoch_string = handshakeResponse[11:]
+                timeObject = time.gmtime(int(epoch_string))
+                timeString = time.strftime('%a %b %d %H:%M:%S UTC %Y', 
+                                           timeObject)
+                try:
+                    # Try to update the system time
+                    os.system('sudo date -s \'{}\''.format(timeString))
+                except:
+                    self.send_message('Error updating time - please try again')
+                    continue
+                
+                else:
+                    self.send_message('RPi time updated as: \'' 
+                                      + timeString + '\'')
+                    print('Pi time updated as: \'' + timeString + '\'')
+                    self.send_message('Handshake complete.')
+                    print('Handshake complete.')
+                    handshake = True
+        print('Ground control link established')
+        
+        return
+    
+    def batteryChecks(self):
+       
+        #From what I gather off last years project, no battery = 0.7V,
+        #full battery = ~18V, for this I have set 100% as voltage =20 
+        #As that is the max voltage from last years code
+        
+        if self.vehicle.battery.voltage  <= 1:
+            print('No battery connected')
+            print('Battery Check Failed')
+            return False
+        if 1 < self.vehicle.battery.voltage <= 10: 
+            print('Low battery charge, less than 50%')
+            print('Battery Check Failed')
+            return False
+        if 10 < self.vehicle.battery.voltage <= 15:
+            print('Battery level 50-75%')
+            print('Battery Check Pass')
+            return True
+        if self.vehicle.battery.voltage > 15:
+            print('Battery Full')
+            print('Battery Check Pass')
+            return True
+                   
+"""
+Checks so far. Is there a method for seed pods count check other than assuming
+that they are loaded and setitng count to 50 as done here in arm section.
+Last year talk of a hardware safety switch, does this exist? 
+I want to add something in with a datalog check
+"""
+
+
+    
