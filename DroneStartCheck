@@ -1,5 +1,11 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#Start Checks
+#Author William
+#Description:
+#Script to run upon initialisation of the drone. Currently checks dronekit connection,
+#drone arming, drone home location adn return altitude. 
+#Seed pod count, ground control station connections
+#Sets time on raspberry pi to same as the ground control station
+#Checks battery level based on voltage reading
 
 import dronekit
 import time
