@@ -1,14 +1,18 @@
-import dronekit as dk
-from dronekit import connect
-from dronekit import VehicleMode
-import time
-import math
+import dronekit as dk                # import dronekit library
+from dronekit import connect         # import connect method from dronekit
+from dronekit import VehicleMode     # import VehicleMode object from dronekit
+import time                          # import time library
+import math                          # import math library
+import threading
 
-
+# Drone class
 class Drone:
     def __init__(self, connection_str):
         try:
             self.vehicle = connect(connection_str)
+            self.event_flag = 0
+            self.eventTakeOff = threading.Event()
+            self.eventPlantLocationReached = threading.Event()
         except dk.APIException:
             print("Timeout")
 
@@ -28,6 +32,7 @@ class Drone:
         self.vehicle.mode = VehicleMode("GUIDED")
         self.vehicle.armed = True
 
+
         # Confirm vehicle armed before attempting to take off
         while not self.vehicle.armed:
             print(" Waiting for arming...")
@@ -45,6 +50,9 @@ class Drone:
                 print("Reached target altitude")
                 break
             time.sleep(1)
+
+        self.eventTakeOff.set()
+
 
     def distance_to_point_m(self, point):
         """
@@ -82,9 +90,33 @@ class Drone:
         return plant_location
 
     def fly_to_point(self, location, airspeed):
+        self.eventTakeOff.wait()
         self.vehicle.airspeed = airspeed
         print("Flying towards point")
         self.vehicle.simple_goto(location)
+
+    def fly_to_point2(self, location, airspeed):
+        self.eventPlantLocationReached.wait()
+        self.vehicle.airspeed = airspeed
+        print("Flying towards point")
+        self.vehicle.simple_goto(location)
+
+    def check_distance(self, plant_location):
+        dlat = plant_location.lat - self.vehicle.location.global_relative_frame.lat
+        dlong = plant_location.lon - self.vehicle.location.global_relative_frame.lon
+        distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
+        while True:
+            time.sleep(1)
+            dlat = plant_location.lat - self.vehicle.location.global_relative_frame.lat
+            dlong = plant_location.lon - self.vehicle.location.global_relative_frame.lon
+            distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
+            print(distance)
+            if distance <= 1:
+                self.eventPlantLocationReached.set()
+                break
+        return print("location reached")
+
+
 
     def plant_wait(self, plant_time):
         for i in range(plant_time):
@@ -93,6 +125,26 @@ class Drone:
 
     def set_plant_flag(self):
         return 1
+
+    def circle(self):
+        self.vehicle.mode = VehicleMode("CIRCLE")
+
+    def event(self):
+        flag = self.event_flag
+        print("flag", flag)
+
+        #if flag == 0:
+        #    return
+        #elif flag == 1:
+        #    event = "take off complete"
+        #elif flag == 2:
+         #   event = "plant location reached"
+        #else:
+         #   print("flag not set")
+        #return event
+
+    def reset_event_flag(self):
+        self.event_flag = 0
 
     def return_home(self):
         self.vehicle.mode = VehicleMode("RTL")
