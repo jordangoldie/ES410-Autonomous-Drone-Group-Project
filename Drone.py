@@ -72,7 +72,21 @@ class Drone:
         dlat = point.lat - self.vehicle.location.global_relative_frame.lat
         dlong = point.lon - self.vehicle.location.global_relative_frame.lon
         distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
+        string = f'distance: {distance}, point: {point}, current: {self.vehicle.location.global_relative_frame}'
+        return string
+
+    def distance_to_point(self, point):
+        """
+        Returns the ground distance in metres between two LocationGlobal objects.
+        Modified from dronekit example documentation
+        The final term deals with the earths curvature
+        """
+        dlat = point.lat - self.vehicle.location.global_relative_frame.lat
+        dlong = point.lon - self.vehicle.location.global_relative_frame.lon
+        distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
+        #string = f'distance: {distance}, point {point}, dlat: {dlat}, dlong: {dlong}'
         return distance
+
 
     def get_current_location(self):
         current_location = self.vehicle.location.global_relative_frame
@@ -113,5 +127,9 @@ class Drone:
 
     def return_home(self):
         self.vehicle.mode = VehicleMode("RTL")
+
+    def get_home_location(self):
+        home = self.vehicle.home_location
+        return home
 
 
