@@ -30,15 +30,16 @@ while True:
     OD = Hex.eventObjectDetected.is_set()
     SC = Hex.eventScanComplete.is_set()
     P = Hex.eventPlant.is_set()
-    DTA = Hex.eventDistanceThreadActive.is_set()
+    # DTA = Hex.eventDistanceThreadActive.is_set()
 
     way_point = Hex.get_plant_location(lats[0], longs[0], alt)
 
-    if not DTA:
+
+    '''if not DTA:
         distance_check = threading.Thread(target=Hex.check_distance(plant_location1))
         print('Debug')
         DTA = Hex.eventDistanceThreadActive.set()
-        print('set distance thread')
+        print('set distance thread')'''
 
     if not MC and not TO and not TA:
         take_off = threading.Thread(target=Hex.arm_and_takeoff(alt))

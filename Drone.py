@@ -11,8 +11,15 @@ class Drone:
         try:
             self.vehicle = connect(connection_str)
             self.event_flag = 0
-            self.eventTakeOff = threading.Event()
-            self.eventPlantLocationReached = threading.Event()
+            self.eventTakeOffComplete = threading.Event()
+            self.eventMissionComplete = threading.Event()
+            self.eventThreadActive = threading.Event()
+            self.eventLocationReached = threading.Event()
+            self.eventObjectDetected = threading.Event()
+            self.eventScanComplete = threading.Event()
+            self.eventPlant = threading.Event()
+            self.eventDistanceThreadActive = threading.Event()
+
         except dk.APIException:
             print("Timeout")
 
@@ -20,7 +27,7 @@ class Drone:
         """
         Arms vehicle and fly to aTargetAltitude.
         """
-
+        self.eventThreadActive.set()
         print("Basic pre-arm checks")
         # Don't try to arm until autopilot is ready
         while not self.vehicle.is_armable:
@@ -31,7 +38,6 @@ class Drone:
         # Copter should arm in GUIDED mode
         self.vehicle.mode = VehicleMode("GUIDED")
         self.vehicle.armed = True
-
 
         # Confirm vehicle armed before attempting to take off
         while not self.vehicle.armed:
@@ -51,7 +57,8 @@ class Drone:
                 break
             time.sleep(1)
 
-        self.eventTakeOff.set()
+        self.eventTakeOffComplete.set()
+        self.eventThreadActive.clear()
 
 
     def distance_to_point_m(self, point):
@@ -90,7 +97,7 @@ class Drone:
         return plant_location
 
     def fly_to_point(self, location, airspeed):
-        self.eventTakeOff.wait()
+        self.eventThreadActive.set()
         self.vehicle.airspeed = airspeed
         print("Flying towards point")
         self.vehicle.simple_goto(location)
@@ -112,11 +119,12 @@ class Drone:
             distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
             print(distance)
             if distance <= 1:
-                self.eventPlantLocationReached.set()
+                self.eventLocationReached.set()
+                self.eventThreadActive.clear()
                 break
+            else:
+                self.eventLocationReached.clear()
         return print("location reached")
-
-
 
     def plant_wait(self, plant_time):
         for i in range(plant_time):
@@ -124,7 +132,9 @@ class Drone:
             time.sleep(1)
 
     def set_plant_flag(self):
-        return 1
+        self.eventThreadActive.set()
+        self.eventPlant.set()
+        self.eventThreadActive.clear()
 
     def circle(self):
         self.vehicle.mode = VehicleMode("CIRCLE")
@@ -148,5 +158,6 @@ class Drone:
 
     def return_home(self):
         self.vehicle.mode = VehicleMode("RTL")
+
 
 
