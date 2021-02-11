@@ -5,6 +5,7 @@ import time                          # import time library
 import math                          # import math library
 import threading
 
+
 # Drone class
 class Drone:
     def __init__(self, connection_str):
@@ -27,6 +28,7 @@ class Drone:
         """
         Arms vehicle and fly to aTargetAltitude.
         """
+        self.eventTakeOffComplete.set()
         self.eventThreadActive.set()
         print("Basic pre-arm checks")
         # Don't try to arm until autopilot is ready
@@ -57,7 +59,6 @@ class Drone:
                 break
             time.sleep(1)
 
-        self.eventTakeOffComplete.set()
         self.eventThreadActive.clear()
 
 
@@ -109,9 +110,9 @@ class Drone:
         self.vehicle.simple_goto(location)
 
     def check_distance(self, plant_location):
-        dlat = plant_location.lat - self.vehicle.location.global_relative_frame.lat
+        '''dlat = plant_location.lat - self.vehicle.location.global_relative_frame.lat
         dlong = plant_location.lon - self.vehicle.location.global_relative_frame.lon
-        distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
+        distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5'''
         while True:
             time.sleep(1)
             dlat = plant_location.lat - self.vehicle.location.global_relative_frame.lat
@@ -121,6 +122,7 @@ class Drone:
             if distance <= 1:
                 self.eventLocationReached.set()
                 self.eventThreadActive.clear()
+                self.eventDistanceThreadActive.clear()
                 break
             else:
                 self.eventLocationReached.clear()
@@ -158,6 +160,7 @@ class Drone:
 
     def return_home(self):
         self.vehicle.mode = VehicleMode("RTL")
+        self.eventThreadActive.set()
 
 
 

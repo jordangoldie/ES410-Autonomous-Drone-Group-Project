@@ -172,6 +172,10 @@
       <screen x="0" y="0" width="1440" height="900" />
     </state>
     <state x="277" y="186" key="com.intellij.xdebugger.impl.breakpoints.ui.BreakpointsDialogFactory$2/0.0.1440.900/1440.-132.1920.1080@0.0.1440.900" timestamp="1612908032314" />
+    <state x="385" y="196" width="670" height="676" key="search.everywhere.popup" timestamp="1613082495359">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state x="385" y="196" width="670" height="676" key="search.everywhere.popup/0.0.1440.900/1440.-132.1920.1080@0.0.1440.900" timestamp="1613082495359" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
