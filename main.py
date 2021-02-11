@@ -2,7 +2,7 @@ from Drone import Drone
 from data_logging import DataLogging
 import time
 import socket
-from origin import get_vector, set_origin
+from GPS import get_vector, set_origin
 
 Hex = Drone("127.0.0.1:14550")
 
@@ -35,7 +35,6 @@ for i in range(plant_count):
     distance = Hex.distance_to_point(plant_location)
 
     while distance >= 1:
-        time.sleep(1)
         # distance = Hex.distance_to_point_m(plant_location)
         # print(distance)
         string = Hex.distance_to_point_m(plant_location)

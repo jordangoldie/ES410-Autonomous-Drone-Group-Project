@@ -72,8 +72,8 @@ class Drone:
         dlat = point.lat - self.vehicle.location.global_relative_frame.lat
         dlong = point.lon - self.vehicle.location.global_relative_frame.lon
         distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
-        string = f'distance: {distance}, point: {point}, current: {self.vehicle.location.global_relative_frame}'
-        return string
+        #string = f'distance: {distance}, point: {point}, current: {self.vehicle.location.global_relative_frame}'
+        return distance
 
     def distance_to_point(self, point):
         """

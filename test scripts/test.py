@@ -1,7 +1,7 @@
 import numpy.linalg
 import numpy as np
 import math
-from origin import get_vector, set_origin
+from GPS import get_vector, set_origin, get_gps
 
 # origin
 latO = -35.3626697
@@ -15,6 +15,8 @@ altN = 3.973
 
 origin, rot = set_origin(latO, lonO)
 
-unity_vec = get_vector(origin, rot, latN, lonN, altN)
+x, y, z = get_vector(origin, rot, latN, lonN, altN)
+
+lat, long, long2 = get_gps(origin, rot, x, y, z)
 
 print('Done')

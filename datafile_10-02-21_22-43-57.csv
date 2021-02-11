@@ -1,0 +1,3 @@
+Logging started at 10-02-21 at 22:43:57
+Timestamp, Longitude, Latitude, Altitude, Roll, Pitch, Yaw, Velocity, Groundspeed, Airspeed, Current, Voltage
+22:43:57.762210, 149.1652375, -35.3632622, 0.021, 0.0010115266777575016, 0.0012383324792608619, -0.006321795284748077, [-0.01, 0.01, 0.0], 0.02450917288661003, 0.0, 0, 0
