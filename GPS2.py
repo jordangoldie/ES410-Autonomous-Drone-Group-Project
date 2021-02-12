@@ -20,11 +20,16 @@ def gps_to_cartesian(lat, long):
 
 
 # some issue here
-def cartesian_to_gps(x, y, z):
+def cartesian_to_gps(vector_fo):
     radius = 6378100
-    lat = math.asin(z/radius)
-    long = math.asin(y/(radius*math.cos(lat)))
-    long2 = math.acos(x/(radius*math.cos(lat)))
+
+    lat = math.asin(vector_fo[2]/radius)
+    long = math.asin(vector_fo[1]/(radius*math.cos(lat)))
+    long2 = math.acos(vector_fo[0]/(radius*math.cos(lat)))
+
+    lat = (lat / math.pi) * 180
+    long = (long / math.pi) * 180
+    long2 = (long2 / math.pi) * 180
 
     return lat, long, long2
 
@@ -49,53 +54,40 @@ def set_origin(lat, long):
     xn = np.transpose(xn)
     r = np.transpose(r)
 
-    # make the 3x3 rotation matrix which describes the orientation of our new coordinate frame
-    rot = np.c_[xn, yn, zn]
-
     # Create Pose of new frame w.r.t origin (i.e frame Origin = fO)
+    rot = np.c_[xn, yn, zn]
     origin_pose_fo = np.vstack([np.c_[rot, r], np.array([0, 0, 0, 1])])
-    return origin_pose_fo, rot
+    return origin_pose_fo
 
 
-def get_vector(origin_pose, rot, lat, long, alt):
+def get_vector(origin_pose_fo, lat, long, alt):
 
     # convert to cartesian
     x, y, z = gps_to_cartesian(lat, long)
-    p = np.array([x, y, z])
+    p = np.array([x, y, z, 1])
     p = np.transpose(p)
 
-    # define pose of point w.r.t origin
-    point_pose_fo = np.vstack([np.c_[rot, p], np.array([0, 0, 0, 1])])
+    # inverse of origin_pose_fo
+    vector_fn = np.matmul(npl.inv(origin_pose_fo), p)
 
-    # define pose of point w.r.t new frame
-    point_pose_fn = np.matmul(npl.inv(origin_pose), point_pose_fo)
-
-    # output x y z as string for unity
-    unity_x = point_pose_fn[0, 3]
-    unity_y = point_pose_fn[1, 3]
-    actual_z = point_pose_fn[2, 3]
-    unity_z = alt
-
-
-    # CSV string
-    unity_coord = f'{unity_x},{unity_y}, {unity_z}'
-
-    return unity_x, unity_y, unity_z,  # to return the values
-    # return unity_coord
+    return vector_fn  # to return the values
 
 
 # this function isn't yet working perfect
-def get_gps(origin_pose, rot, x, y, z):
+def get_gps(origin_pose, vector_fn):
 
-    p = np.array([x, y, z])
-    point_pose_fn = np.vstack([np.c_[rot, p], np.array([0, 0, 0, 1])])
-    point_pose_fo = np.matmul(origin_pose, point_pose_fn)
+    vector_fo = np.matmul(origin_pose, vector_fn)
 
-    # output global x y z
-    x = point_pose_fo[0, 3]
-    y = point_pose_fo[1, 3]
-    z = point_pose_fo[2, 3]
-
-    lat, long, long2 = cartesian_to_gps(x, y, z)
+    lat, long, long2 = cartesian_to_gps(vector_fo)
 
     return lat, long, long2
+
+
+def distance_from_home(origin_fo, lat, long, alt):  # using home and current position get distance
+
+    return int
+
+
+def distance_from_waypoint(vector_fn, waypoint_fn): # using current location and waypoint get distance from
+
+    return int

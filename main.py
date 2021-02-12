@@ -3,7 +3,7 @@ from data_logging import DataLogging     # import DataLogging class from data_lo
 import time                              # import time library
 import threading
 
-Hex = Drone("127.0.0.1:14550")     # Create instance of drone class, passing UDP port number for SITL connection
+Hex = Drone("127.0.0.1:14550")     # Create instance of drone class, passing IP and Port for UDP socket
 
 # lats = [-35.36311393, -35.36265179, -35.36266860, -35.36309214, -35.36355729]     # latitudes of plant locations
 # longs = [149.16456640, 149.16401228, 149.16345636, 149.16293594, 149.16460797]    # longitudes of plant locations
@@ -21,7 +21,6 @@ plant_range = 1
 plant_location1 = Hex.get_plant_location(lats[plant_count], longs[plant_count], alt)
 plant_location2 = Hex.get_plant_location(lats[1], longs[1], alt)
 
-# Hex.arm_and_takeoff(alt) # arm drone and take off using method from Drone.py, passing specified altitude as argument
 n = 0  # way point increment
 way_point = []
 
@@ -48,6 +47,7 @@ while True:
         print('set distance thread')
 
     if not MC and not TO and not TA:
+        # arm drone and take off using method from Drone.py, passing specified altitude as argument
         take_off = threading.Thread(target=Hex.arm_and_takeoff, args=[alt])
         take_off.start()
         print('taking off')

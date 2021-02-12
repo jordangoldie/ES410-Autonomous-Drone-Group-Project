@@ -1,39 +1,35 @@
-import dronekit as dk
-from dronekit import connect
-from dronekit import VehicleMode
-import time
-import math
-import socket
+import dronekit as dk                # import drone kit library
+from dronekit import connect         # import connect method from drone kit
+from dronekit import VehicleMode     # import VehicleMode object from drone kit
+import time                          # import time library
+import math                          # import math library
+import threading
 
 
+# Drone class
 class Drone:
     def __init__(self, connection_str):
         try:
             self.vehicle = connect(connection_str)
+            self.event_flag = 0
+            self.eventTakeOffComplete = threading.Event()
+            self.eventMissionComplete = threading.Event()
+            self.eventThreadActive = threading.Event()
+            self.eventLocationReached = threading.Event()
+            self.eventObjectDetected = threading.Event()
+            self.eventScanComplete = threading.Event()
+            self.eventPlant = threading.Event()
+            self.eventDistanceThreadActive = threading.Event()
+
         except dk.APIException:
             print("Timeout")
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    def bind_server_socket(self, host_ip, port):
-        host_name = socket.gethostname() # gets name of host machine
-        host_ip = socket.gethostbyname(host_name) # gets IP of host machine
-        port = 1234
-        server_address = (host_ip, port)
-        self.server_socket.bind(server_address) # binds to socket
-        self.server_socket.listen(5) # listens for TCP connections
-        print("[INFO] NOW LISTENING AT HOST ADDRESS: ", server_address)
-
-    def listen_for_tcp(self):
-        self.server_socket.listen(5)
-        print("[INFO] NOW LISTENING AT: ", server_address)
-        client_socket, client_address = self.server_socket.accept()
-        print("[INFO] GOT CONNECTION FROM: ", client_address)
 
     def arm_and_takeoff(self, aTargetAltitude):
         """
         Arms vehicle and fly to aTargetAltitude.
         """
-
+        self.eventTakeOffComplete.set()
+        self.eventThreadActive.set()
         print("Basic pre-arm checks")
         # Don't try to arm until autopilot is ready
         while not self.vehicle.is_armable:
@@ -63,6 +59,8 @@ class Drone:
                 break
             time.sleep(1)
 
+        self.eventThreadActive.clear()
+
     def distance_to_point_m(self, point):
         """
         Returns the ground distance in metres between two LocationGlobal objects.
@@ -72,21 +70,7 @@ class Drone:
         dlat = point.lat - self.vehicle.location.global_relative_frame.lat
         dlong = point.lon - self.vehicle.location.global_relative_frame.lon
         distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
-        #string = f'distance: {distance}, point: {point}, current: {self.vehicle.location.global_relative_frame}'
         return distance
-
-    def distance_to_point(self, point):
-        """
-        Returns the ground distance in metres between two LocationGlobal objects.
-        Modified from dronekit example documentation
-        The final term deals with the earths curvature
-        """
-        dlat = point.lat - self.vehicle.location.global_relative_frame.lat
-        dlong = point.lon - self.vehicle.location.global_relative_frame.lon
-        distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
-        #string = f'distance: {distance}, point {point}, dlat: {dlat}, dlong: {dlong}'
-        return distance
-
 
     def get_current_location(self):
         current_location = self.vehicle.location.global_relative_frame
@@ -113,9 +97,35 @@ class Drone:
         return plant_location
 
     def fly_to_point(self, location, airspeed):
+        self.eventThreadActive.set()
         self.vehicle.airspeed = airspeed
         print("Flying towards point")
         self.vehicle.simple_goto(location)
+
+    def fly_to_point2(self, location, airspeed):
+        self.eventPlantLocationReached.wait()
+        self.vehicle.airspeed = airspeed
+        print("Flying towards point")
+        self.vehicle.simple_goto(location)
+
+    def check_distance(self, plant_location):
+        '''dlat = plant_location.lat - self.vehicle.location.global_relative_frame.lat
+        dlong = plant_location.lon - self.vehicle.location.global_relative_frame.lon
+        distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5'''
+        while True:
+            time.sleep(1)
+            dlat = plant_location.lat - self.vehicle.location.global_relative_frame.lat
+            dlong = plant_location.lon - self.vehicle.location.global_relative_frame.lon
+            distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
+            print(distance)
+            if distance <= 1:
+                self.eventLocationReached.set()
+                self.eventThreadActive.clear()
+                self.eventDistanceThreadActive.clear()
+                break
+            else:
+                self.eventLocationReached.clear()
+        return print("location reached")
 
     def plant_wait(self, plant_time):
         for i in range(plant_time):
@@ -123,13 +133,33 @@ class Drone:
             time.sleep(1)
 
     def set_plant_flag(self):
-        return 1
+        self.eventThreadActive.set()
+        self.eventPlant.set()
+        self.eventThreadActive.clear()
+
+    def circle(self):
+        self.vehicle.mode = VehicleMode("CIRCLE")
+
+    def event(self):
+        flag = self.event_flag
+        print("flag", flag)
+
+        #if flag == 0:
+        #    return
+        #elif flag == 1:
+        #    event = "take off complete"
+        #elif flag == 2:
+         #   event = "plant location reached"
+        #else:
+         #   print("flag not set")
+        #return event
+
+    def reset_event_flag(self):
+        self.event_flag = 0
 
     def return_home(self):
         self.vehicle.mode = VehicleMode("RTL")
+        self.eventThreadActive.set()
 
-    def get_home_location(self):
-        home = self.vehicle.home_location
-        return home
 
 
