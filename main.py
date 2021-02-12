@@ -1,57 +1,75 @@
-from Drone import Drone
-from data_logging import DataLogging
-import time
-import socket
-from GPS import get_vector, set_origin
+from Drone import Drone                  # import Drone class from Drone.py
+from data_logging import DataLogging     # import DataLogging class from data_logging.py
+import time                              # import time library
+import threading
 
-Hex = Drone("127.0.0.1:14550")
+Hex = Drone("127.0.0.1:14550")     # Create instance of drone class, passing UDP port number for SITL connection
 
-lats = [-35.36265179, -35.36266860, -35.36309214, -35.36355729, -35.36354127]
-longs = [149.16401228, 149.16345636, 149.16293594, 149.16460797, 149.16399818]
+# lats = [-35.36311393, -35.36265179, -35.36266860, -35.36309214, -35.36355729]     # latitudes of plant locations
+# longs = [149.16456640, 149.16401228, 149.16345636, 149.16293594, 149.16460797]    # longitudes of plant locations
+lats = [-35.36311393, -35.36265179]     # latitudes of plant locations
+longs = [149.16456640, 149.16401228]
 
-alt = 4
-airspeed = 5
+alt = 4                # set altitude (m)
+airspeed = 5           # set airspeed (m/s)
+plant_count = 0        # set plant count
+num_plants = 1
+plant_flag = 0         # set plant flag
+plant_duration = 5     # set duration of planting (s)
+plant_range = 1
 
-plant_count = 3
-plant_flag = 0
-plant_time = 5
+plant_location1 = Hex.get_plant_location(lats[plant_count], longs[plant_count], alt)
+plant_location2 = Hex.get_plant_location(lats[1], longs[1], alt)
 
-InFlightLogging = DataLogging()
-InFlightLogging.PrepLogging()
-InFlightLogging.InfoLogging(Hex)
+# Hex.arm_and_takeoff(alt) # arm drone and take off using method from Drone.py, passing specified altitude as argument
+n = 0  # way point increment
+way_point = []
 
-Hex.arm_and_takeoff(alt)
-lat = Hex.get_current_location().lat
-lon = Hex.get_current_location().lon
-alt = Hex.get_current_location().alt
+while True:
 
-# sets the origin based on above 'get', would be better if this was done with home location
-pose, rot = set_origin(lat, lon)
+    TO = Hex.eventTakeOffComplete.is_set()
+    MC = Hex.eventMissionComplete.is_set()
+    TA = Hex.eventThreadActive.is_set()
+    LR = Hex.eventLocationReached.is_set()
+    OD = Hex.eventObjectDetected.is_set()
+    SC = Hex.eventScanComplete.is_set()
+    P = Hex.eventPlant.is_set()
+    DTA = Hex.eventDistanceThreadActive.is_set()
 
-for i in range(plant_count):
-    plant_location = Hex.get_plant_location(lats[i], longs[i], alt)
-    current_location = Hex.get_current_location()
-    Hex.fly_to_point(plant_location, airspeed)
-    distance = Hex.distance_to_point(plant_location)
+    if n <= (len(lats)-1):
+        way_point = Hex.get_plant_location(lats[n], longs[n], alt)
+    else:
+        Hex.eventMissionComplete.set()
 
-    while distance >= 1:
-        # distance = Hex.distance_to_point_m(plant_location)
-        # print(distance)
-        string = Hex.distance_to_point_m(plant_location)
-        print(string)
-        InFlightLogging.InfoLogging(Hex)
+    if not DTA and not LR:
+        distance_check = threading.Thread(target=Hex.check_distance, args=[way_point])
+        distance_check.start()
+        DTA = Hex.eventDistanceThreadActive.set()
+        print('set distance thread')
 
-        lat = Hex.get_current_location().lat
-        lon = Hex.get_current_location().lon
-        alt = Hex.get_current_location().alt
+    if not MC and not TO and not TA:
+        take_off = threading.Thread(target=Hex.arm_and_takeoff, args=[alt])
+        take_off.start()
+        print('taking off')
 
-        # calculates cartesian vector from origin to new point and sends to unity
-        unity_vec = get_vector(pose, rot, lat, lon)
-        print(f'Unity Vec: {unity_vec}')
+    if not MC and not TA and not LR and TO:
+        fly_to = threading.Thread(target=Hex.fly_to_point, args=(way_point, airspeed))
+        fly_to.start()
+        print('flying to')
 
-    plant_flag = Hex.set_plant_flag()
-    print("plant flag:", plant_flag)
-    Hex.plant_wait(5)
+    if not MC and not TA and LR and TO:
+        plant = threading.Thread(target=Hex.set_plant_flag)
+        plant.start()
+        print('planting')
+        time.sleep(3)
 
+    if P:
+        n += 1
+        Hex.eventPlant.clear()
+        Hex.eventLocationReached.clear()
 
-Hex.return_home()
+    if MC and TO and not TA:
+        complete_mission = threading.Thread(target=Hex.return_home)
+        complete_mission.start()
+        print('returning to home location')
+
