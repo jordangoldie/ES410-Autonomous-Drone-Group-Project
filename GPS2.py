@@ -57,6 +57,7 @@ def set_origin(lat, long):
     # Create Pose of new frame w.r.t origin (i.e frame Origin = fO)
     rot = np.c_[xn, yn, zn]
     origin_pose_fo = np.vstack([np.c_[rot, r], np.array([0, 0, 0, 1])])
+
     return origin_pose_fo
 
 
@@ -64,7 +65,7 @@ def get_vector(origin_pose_fo, lat, long, alt):
 
     # convert to cartesian
     x, y, z = gps_to_cartesian(lat, long)
-    p = np.array([x, y, z, 1])
+    p = np.array([x, y, alt, 1])
     p = np.transpose(p)
 
     # inverse of origin_pose_fo
@@ -82,12 +83,3 @@ def get_gps(origin_pose, vector_fn):
 
     return lat, long, long2
 
-
-def distance_from_home(origin_fo, lat, long, alt):  # using home and current position get distance
-
-    return int
-
-
-def distance_from_waypoint(vector_fn, waypoint_fn): # using current location and waypoint get distance from
-
-    return int

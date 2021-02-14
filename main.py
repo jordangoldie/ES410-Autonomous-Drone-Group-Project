@@ -1,30 +1,33 @@
 from Drone import Drone                  # import Drone class from Drone.py
+from Unity import TCP
+from GPS import set_origin, get_vector
 from data_logging import DataLogging     # import DataLogging class from data_logging.py
 import time                              # import time library
 import threading
 
-Hex = Drone("127.0.0.1:14550")     # Create instance of drone class, passing IP and Port for UDP socket
+Hex = Drone("127.0.0.1:14550")    # Create instance of drone class, passing IP and Port for UDP socket
+position = Hex.get_current_location()
+origin, rot = set_origin(position.lat, position.lon)
+
+tcp = TCP(5598)  # create instance of tcp class
+tcp.bind_server_socket()
+tcp.listen_for_tcp()
 
 # lats = [-35.36311393, -35.36265179, -35.36266860, -35.36309214, -35.36355729]     # latitudes of plant locations
 # longs = [149.16456640, 149.16401228, 149.16345636, 149.16293594, 149.16460797]    # longitudes of plant locations
-lats = [-35.36311393, -35.36265179]     # latitudes of plant locations
+lats = [-35.36311393, -35.36265179]
 longs = [149.16456640, 149.16401228]
 
 alt = 4                # set altitude (m)
 airspeed = 5           # set airspeed (m/s)
-plant_count = 0        # set plant count
-num_plants = 1
-plant_flag = 0         # set plant flag
-plant_duration = 5     # set duration of planting (s)
-plant_range = 1
-
-plant_location1 = Hex.get_plant_location(lats[plant_count], longs[plant_count], alt)
-plant_location2 = Hex.get_plant_location(lats[1], longs[1], alt)
 
 n = 0  # way point increment
 way_point = []
 
 while True:
+
+    string = Hex.get_positional_data(origin, rot)
+    tcp.send_message(string)
 
     TO = Hex.eventTakeOffComplete.is_set()
     MC = Hex.eventMissionComplete.is_set()

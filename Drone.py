@@ -4,6 +4,7 @@ from dronekit import VehicleMode     # import VehicleMode object from drone kit
 import time                          # import time library
 import math                          # import math library
 import threading
+from GPS import get_vector, set_origin
 
 
 # Drone class
@@ -161,5 +162,16 @@ class Drone:
         self.vehicle.mode = VehicleMode("RTL")
         self.eventThreadActive.set()
 
+    def get_positional_data(self, origin, rot):
+        lat = self.get_current_location().lat
+        lon = self.get_current_location().lon
+        alt = self.get_current_location().alt
+        x, y, z = get_vector(origin, rot, lat, lon, alt)
 
+        roll = self.get_attitude().roll
+        pitch = self.get_attitude().pitch
+        yaw = self.get_attitude().yaw
 
+        string = f'{x},{y},{z},{roll},{pitch},{yaw}'
+
+        return string
