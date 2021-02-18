@@ -19,7 +19,6 @@ def gps_to_cartesian(lat, long):
     return x, y, z
 
 
-# some issue here
 def cartesian_to_gps(x, y, z):
     radius = 6378100
     lat = math.asin(z/radius)

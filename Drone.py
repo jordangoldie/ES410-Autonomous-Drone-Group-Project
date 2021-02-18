@@ -1,10 +1,12 @@
 import dronekit as dk                # import drone kit library
 from dronekit import connect         # import connect method from drone kit
 from dronekit import VehicleMode     # import VehicleMode object from drone kit
+from pymavlink import mavutil
 import time                          # import time library
 import math                          # import math library
 import threading
-from GPS import get_vector, set_origin
+from GPS2 import get_vector, get_gps
+import numpy as np
 
 
 # Drone class
@@ -21,6 +23,7 @@ class Drone:
             self.eventScanComplete = threading.Event()
             self.eventPlant = threading.Event()
             self.eventDistanceThreadActive = threading.Event()
+            self.origin = np.array
 
         except dk.APIException:
             print("Timeout")
@@ -63,11 +66,6 @@ class Drone:
         self.eventThreadActive.clear()
 
     def distance_to_point_m(self, point):
-        """
-        Returns the ground distance in metres between two LocationGlobal objects.
-        Modified from dronekit example documentation
-        The final term deals with the earths curvature
-        """
         dlat = point.lat - self.vehicle.location.global_relative_frame.lat
         dlong = point.lon - self.vehicle.location.global_relative_frame.lon
         distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
@@ -115,6 +113,12 @@ class Drone:
         distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5'''
         while True:
             time.sleep(1)
+
+            '''Returns the ground distance in metres between two LocationGlobal objects.
+
+               This method is an approximation, and will not be accurate over large distances and close to the 
+               earth's poles. It comes from the ArduPilot test code: 
+               https://github.com/diydrones/ardupilot/blob/master/Tools/autotest/common.py'''
             dlat = plant_location.lat - self.vehicle.location.global_relative_frame.lat
             dlong = plant_location.lon - self.vehicle.location.global_relative_frame.lon
             distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
@@ -126,6 +130,8 @@ class Drone:
                 break
             else:
                 self.eventLocationReached.clear()
+            time.sleep(2)
+
         return print("location reached")
 
     def plant_wait(self, plant_time):
@@ -139,21 +145,44 @@ class Drone:
         self.eventThreadActive.clear()
 
     def circle(self):
-        self.vehicle.mode = VehicleMode("CIRCLE")
+        self.eventThreadActive.set()
+        # change this later so it uses the current waypoint target
+        lat = self.get_current_location().lat
+        lon = self.get_current_location().lon
+        alt = self.get_current_location().alt
+        wp = np.array([lat, lon, alt])
+        self.get_circle_coords(lat, lon, self.origin)
+        self.manual_circle(wp, self.origin)
+        self.eventScanComplete.set()
+        self.eventThreadActive.clear()
+
+    def send_global_velocity(self, velocity_x, velocity_y, velocity_z, duration):
+        """
+        Move vehicle in direction based on specified velocity vectors.
+        """
+        msg = self.vehicle.message_factory.set_position_target_global_int_encode(
+            0,  # time_boot_ms (not used)
+            0, 0,  # target system, target component
+            mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT_INT,  # frame
+            0b0000111111000111,  # type_mask (only speeds enabled)
+            0,  # lat_int - X Position in WGS84 frame in 1e7 * meters
+            0,  # lon_int - Y Position in WGS84 frame in 1e7 * meters
+            0,  # alt - Altitude in meters in AMSL altitude(not WGS84 if absolute or relative)
+            # altitude above terrain if GLOBAL_TERRAIN_ALT_INT
+            velocity_x,  # X velocity in NED frame in m/s
+            velocity_y,  # Y velocity in NED frame in m/s
+            velocity_z,  # Z velocity in NED frame in m/s
+            0, 0, 0,  # afx, afy, afz acceleration (not supported yet, ignored in GCS_Mavlink)
+            0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
+
+        # send command to vehicle on 1 Hz cycle
+        for x in range(0, duration):
+            self.vehicle.send_mavlink(msg)
+            time.sleep(1)
 
     def event(self):
         flag = self.event_flag
         print("flag", flag)
-
-        #if flag == 0:
-        #    return
-        #elif flag == 1:
-        #    event = "take off complete"
-        #elif flag == 2:
-         #   event = "plant location reached"
-        #else:
-         #   print("flag not set")
-        #return event
 
     def reset_event_flag(self):
         self.event_flag = 0
@@ -162,16 +191,49 @@ class Drone:
         self.vehicle.mode = VehicleMode("RTL")
         self.eventThreadActive.set()
 
-    def get_positional_data(self, origin, rot):
+    def get_positional_data(self, origin):
         lat = self.get_current_location().lat
         lon = self.get_current_location().lon
         alt = self.get_current_location().alt
-        x, y, z = get_vector(origin, rot, lat, lon, alt)
+        vector_fn = get_vector(origin, lat, lon)
 
         roll = self.get_attitude().roll
         pitch = self.get_attitude().pitch
         yaw = self.get_attitude().yaw
 
-        string = f'{x},{y},{z},{roll},{pitch},{yaw}'
+        string = f'{vector_fn[0]},{vector_fn[1]},{alt},{roll},{pitch},{yaw}'
 
         return string
+
+    def get_circle_coords(self, lat, long, origin):
+        radius = 2
+        wp_pos = get_vector(origin, lat, long)
+
+        circle_x = []
+        circle_y = []
+        circle_lats = []
+        circle_longs = []
+
+        for i in range(0, 360):
+            circle_x.append(wp_pos[0] + radius * math.cos(i))
+            circle_y.append(wp_pos[1] + radius * math.sin(i))
+            circle_point = np.array([circle_x[i], circle_y[i], wp_pos[2], 1])
+            circle_point = np.transpose(circle_point)
+            lat, lon, long2 = get_gps(origin, circle_point)
+            circle_lats.append(lat)
+            circle_longs.append(long2)
+
+        return circle_lats, circle_longs
+
+    def manual_circle(self, wp, origin):
+        lats, longs = self.get_circle_coords(wp[0], wp[1], origin)
+
+        circle_p = self.get_plant_location(lats[0], longs[0], wp[2])
+        self.vehicle.simple_goto(circle_p)
+        time.sleep(3)
+
+        for i in range(0, len(lats)):
+            circle_p = self.get_plant_location(lats[i], longs[i], wp[2])
+            self.fly_to_point(circle_p, 5)
+            time.sleep(3)
+

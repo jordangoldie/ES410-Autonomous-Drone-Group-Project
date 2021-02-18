@@ -19,7 +19,6 @@ def gps_to_cartesian(lat, long):
     return x, y, z
 
 
-# some issue here
 def cartesian_to_gps(vector_fo):
     radius = 6378100
 
@@ -61,20 +60,19 @@ def set_origin(lat, long):
     return origin_pose_fo
 
 
-def get_vector(origin_pose_fo, lat, long, alt):
+def get_vector(origin_pose_fo, lat, long):
 
     # convert to cartesian
     x, y, z = gps_to_cartesian(lat, long)
-    p = np.array([x, y, alt, 1])
-    p = np.transpose(p)
+    p_fo = np.array([x, y, z, 1])
+    p_fo = np.transpose(p_fo)
 
     # inverse of origin_pose_fo
-    vector_fn = np.matmul(npl.inv(origin_pose_fo), p)
+    vector_fn = np.matmul(npl.inv(origin_pose_fo), p_fo)
 
     return vector_fn  # to return the values
 
 
-# this function isn't yet working perfect
 def get_gps(origin_pose, vector_fn):
 
     vector_fo = np.matmul(origin_pose, vector_fn)
@@ -83,3 +81,23 @@ def get_gps(origin_pose, vector_fn):
 
     return lat, long, long2
 
+
+def get_circle_coords(lat, long, origin):
+    radius = 2
+    wp_pos = get_vector(origin, lat, long)
+
+    circle_x = []
+    circle_y = []
+    circle_lats = []
+    circle_longs = []
+
+    for i in range(0, 361):
+        circle_x.append(wp_pos[0] + radius * math.cos(i))
+        circle_y.append(wp_pos[1] + radius * math.sin(i))
+        circle_point = np.array([circle_x[i], circle_y[i], wp_pos[2], 1])
+        circle_point = np.transpose(circle_point)
+        lat, lon, long2 = get_gps(origin, circle_point)
+        circle_lats.append(lat)
+        circle_longs.append(long2)
+
+    return circle_lats, circle_longs
