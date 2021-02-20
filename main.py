@@ -11,7 +11,6 @@ Hex.origin = set_origin(position.lat, position.lon)
 unity = threading.Thread(target=Hex.handle_unity)
 unity.start()
 
-
 # lats = [-35.36311393, -35.36265179, -35.36266860, -35.36309214, -35.36355729]     # latitudes of plant locations
 # longs = [149.16456640, 149.16401228, 149.16345636, 149.16293594, 149.16460797]    # longitudes of plant locations
 lats = [-35.36311393, -35.36265179]
@@ -52,11 +51,6 @@ while True:
         take_off.start()
         print('taking off')
 
-    if not MC and not TA and not LR and TO:
-        fly_to = threading.Thread(target=Hex.fly_to_point, args=(way_point, airspeed))
-        fly_to.start()
-        print('flying to')
-
     if not MC and not TA and LR and TO:
         scan = threading.Thread(target=Hex.circle, args=[20])
         scan.start()
@@ -77,3 +71,4 @@ while True:
         complete_mission.start()
         print('returning to home location')
         break
+
