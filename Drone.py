@@ -24,6 +24,7 @@ class Drone:
             self.eventScanComplete = threading.Event()
             self.eventPlant = threading.Event()
             self.eventDistanceThreadActive = threading.Event()
+            self.eventPlantLocationReached = threading.Event()
             self.origin = np.array
 
         except dk.APIException:
@@ -119,9 +120,14 @@ class Drone:
             distance = distance_between(lat, long, wp_lat, wp_long, self.origin)
             print(distance)
             if distance <= 1:
-                self.eventLocationReached.set()
-                self.eventThreadActive.clear()
-                self.eventDistanceThreadActive.clear()
+                if plant_indicator == 1:
+                    self.eventPlantLocationReached.set()
+                    self.eventThreadActive.clear()
+                    self.eventDistanceThreadActive.clear()
+                else:
+                    self.eventLocationReached.set()
+                    self.eventThreadActive.clear()
+                    self.eventDistanceThreadActive.clear()
                 break
             else:
                 self.eventLocationReached.clear()
@@ -135,9 +141,14 @@ class Drone:
             time.sleep(1)
 
     def set_plant_flag(self):
+        for i in range(3):
+            print("planting")
+            time.sleep(1)
+        print("planting complete")
         self.eventThreadActive.set()
         self.eventPlant.set()
         self.eventThreadActive.clear()
+        self.eventScanComplete.clear()
 
     def circle(self, duration):
         self.eventThreadActive.set()

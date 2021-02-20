@@ -11,6 +11,7 @@ Hex.origin = set_origin(position.lat, position.lon)
 unity = threading.Thread(target=Hex.handle_unity)
 unity.start()
 
+
 # lats = [-35.36311393, -35.36265179, -35.36266860, -35.36309214, -35.36355729]     # latitudes of plant locations
 # longs = [149.16456640, 149.16401228, 149.16345636, 149.16293594, 149.16460797]    # longitudes of plant locations
 lats = [-35.36311393, -35.36265179]
@@ -76,4 +77,3 @@ while True:
         complete_mission.start()
         print('returning to home location')
         break
-
