@@ -4,7 +4,6 @@
 # Owner:
 # File: data_logging.py
 # Description:
-
 from datetime import datetime
 import dronekit
 import os
