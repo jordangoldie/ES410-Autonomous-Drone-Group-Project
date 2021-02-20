@@ -6,19 +6,30 @@ import time                              # import time library
 import threading
 import argparse
 
+'''ap = argparse.ArgumentParser()
+ap.add_argument('-u', '--unity', type=int,  default=1,
+                help="connect with unity")
+args = vars(ap.parse_args())'''
+
 Hex = Drone("127.0.0.1:14550")    # Create instance of drone class, passing IP and Port for UDP socket
 position = Hex.get_current_location()
-# Hex.origin = set_origin(position.lat, position.lon)
+Hex.origin = set_origin(position.lat, position.lon)
+'''
+tcp = TCP(5598)  # create instance of tcp class
+tcp.bind_server_socket()
+# if args["unity"] == 0:
+tcp.listen_for_tcp() '''
 
-lats = [-35.36311393, -35.36265179, -35.36266860, -35.36309214, -35.36355729]     # latitudes of plant locations
-longs = [149.16456640, 149.16401228, 149.16345636, 149.16293594, 149.16460797]    # longitudes of plant locations
+# lats = [-35.36311393, -35.36265179, -35.36266860, -35.36309214, -35.36355729]     # latitudes of plant locations
+# longs = [149.16456640, 149.16401228, 149.16345636, 149.16293594, 149.16460797]    # longitudes of plant locations
+lats = [-35.36311393, -35.36265179]
+longs = [149.16456640, 149.16401228]
 
 alt = 4                # set altitude (m)
 airspeed = 5           # set airspeed (m/s)
 
 n = 0  # way point increment
 way_point = []
-plant_indicator = 1
 
 while True:
 
@@ -37,7 +48,6 @@ while True:
         MC = Hex.eventMissionComplete.is_set()
         TA = Hex.eventThreadActive.is_set()
         LR = Hex.eventLocationReached.is_set()
-        PLR = Hex.eventPlantLocationReached.is_set()
         OD = Hex.eventObjectDetected.is_set()
         SC = Hex.eventScanComplete.is_set()
         P = Hex.eventPlant.is_set()
@@ -50,7 +60,7 @@ while True:
             Hex.eventMissionComplete.set()
 
         if not DTA and not LR:
-            distance_check = threading.Thread(target=Hex.check_distance, args=[way_point, plant_indicator])
+            distance_check = threading.Thread(target=Hex.check_distance, args=[way_point])
             distance_check.start()
             DTA = Hex.eventDistanceThreadActive.set()
             print('set distance thread')
@@ -64,26 +74,18 @@ while True:
         if not MC and not TA and not LR and TO:
             fly_to = threading.Thread(target=Hex.fly_to_point, args=(way_point, airspeed))
             fly_to.start()
+            Hex.circle()
             print('flying to')
 
-        if not MC and not TA and PLR and TO:
-            # scan = threading.Thread(target=Hex.circle())
-            # scan.start()
-            Hex.eventThreadActive.set()
-            for i in range(3):
-                time.sleep(1)
-                print("scanning")
-            print("scan complete")
-            Hex.eventScanComplete.set()
-            Hex.eventThreadActive.clear()
-
         if not MC and not TA and LR and TO:
-            n += 1
-            Hex.eventLocationReached.clear()
+            scan = threading.Thread(target=Hex.circle())
+            scan.start()
 
-        if not MC and not TA and PLR and SC and TO:
+        if not MC and not TA and LR and SC and TO:
             plant = threading.Thread(target=Hex.set_plant_flag)
             plant.start()
+            print('planting')
+            time.sleep(3)
 
         if P:
             n += 1
@@ -95,3 +97,4 @@ while True:
             complete_mission.start()
             print('returning to home location')
             break
+

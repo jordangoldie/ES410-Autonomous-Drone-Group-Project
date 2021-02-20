@@ -23,6 +23,7 @@ class Drone:
             self.eventScanComplete = threading.Event()
             self.eventPlant = threading.Event()
             self.eventDistanceThreadActive = threading.Event()
+            self.eventPlantLocationReached = threading.Event()
             self.origin = np.array
 
         except dk.APIException:
@@ -107,7 +108,7 @@ class Drone:
         print("Flying towards point")
         self.vehicle.simple_goto(location)
 
-    def check_distance(self, plant_location):
+    def check_distance(self, location, plant_indicator):
         '''dlat = plant_location.lat - self.vehicle.location.global_relative_frame.lat
         dlong = plant_location.lon - self.vehicle.location.global_relative_frame.lon
         distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5'''
@@ -119,14 +120,19 @@ class Drone:
                This method is an approximation, and will not be accurate over large distances and close to the 
                earth's poles. It comes from the ArduPilot test code: 
                https://github.com/diydrones/ardupilot/blob/master/Tools/autotest/common.py'''
-            dlat = plant_location.lat - self.vehicle.location.global_relative_frame.lat
-            dlong = plant_location.lon - self.vehicle.location.global_relative_frame.lon
+            dlat = location.lat - self.vehicle.location.global_relative_frame.lat
+            dlong = location.lon - self.vehicle.location.global_relative_frame.lon
             distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
             print(distance)
             if distance <= 1:
-                self.eventLocationReached.set()
-                self.eventThreadActive.clear()
-                self.eventDistanceThreadActive.clear()
+                if plant_indicator == 1:
+                    self.eventPlantLocationReached.set()
+                    self.eventThreadActive.clear()
+                    self.eventDistanceThreadActive.clear()
+                else:
+                    self.eventLocationReached.set()
+                    self.eventThreadActive.clear()
+                    self.eventDistanceThreadActive.clear()
                 break
             else:
                 self.eventLocationReached.clear()
@@ -140,9 +146,14 @@ class Drone:
             time.sleep(1)
 
     def set_plant_flag(self):
+        for i in range(3):
+            print("planting")
+            time.sleep(1)
+        print("planting complete")
         self.eventThreadActive.set()
         self.eventPlant.set()
         self.eventThreadActive.clear()
+        self.eventScanComplete.clear()
 
     def circle(self):
         self.eventThreadActive.set()
@@ -215,8 +226,9 @@ class Drone:
         circle_longs = []
 
         for i in range(0, 360):
-            circle_x.append(wp_pos[0] + radius * math.cos(i))
-            circle_y.append(wp_pos[1] + radius * math.sin(i))
+            rad = int(i) * (math.pi/180)
+            circle_x.append(wp_pos[0] + radius * math.cos(rad))
+            circle_y.append(wp_pos[1] + radius * math.sin(rad))
             circle_point = np.array([circle_x[i], circle_y[i], wp_pos[2], 1])
             circle_point = np.transpose(circle_point)
             lat, lon, long2 = get_gps(origin, circle_point)
@@ -235,5 +247,20 @@ class Drone:
         for i in range(0, len(lats)):
             circle_p = self.get_plant_location(lats[i], longs[i], wp[2])
             self.fly_to_point(circle_p, 5)
-            time.sleep(3)
+            time.sleep(0.5)
+
+'''def orbit(self):
+        """
+                Move vehicle in direction based on specified velocity vectors.
+                """
+        msg = self.vehicle.message_factory.mav_cmd_do_orbit_encode(
+            ,  # time_boot_ms (not used)
+            0, 0,  # target system, target component
+            0b00000111,  # type_mask (only speeds enabled)
+            {1, 0, 0, 0},
+            0, 0, 0,
+            0.5)
+
+        self.vehicle.send_mavlink(msg)'''
+
 

@@ -14,11 +14,11 @@ args = vars(ap.parse_args())'''
 Hex = Drone("127.0.0.1:14550")    # Create instance of drone class, passing IP and Port for UDP socket
 position = Hex.get_current_location()
 Hex.origin = set_origin(position.lat, position.lon)
-
+'''
 tcp = TCP(5598)  # create instance of tcp class
 tcp.bind_server_socket()
 # if args["unity"] == 0:
-tcp.listen_for_tcp()
+tcp.listen_for_tcp() '''
 
 # lats = [-35.36311393, -35.36265179, -35.36266860, -35.36309214, -35.36355729]     # latitudes of plant locations
 # longs = [149.16456640, 149.16401228, 149.16345636, 149.16293594, 149.16460797]    # longitudes of plant locations
@@ -35,13 +35,13 @@ while True:
 
     # gets position and orientation and sends to unity via tcp
     # if args["unity"]:
-    string = Hex.get_positional_data(Hex.origin)
-    tcp.send_message(string)
+    '''string = Hex.get_positional_data(Hex.origin)
+    tcp.send_message(string)'''
 
     while True:
 
-        string = Hex.get_positional_data(Hex.origin)
-        tcp.send_message(string)
+        '''string = Hex.get_positional_data(Hex.origin)
+        tcp.send_message(string)'''
 
         # initiates event flags
         TO = Hex.eventTakeOffComplete.is_set()
@@ -83,8 +83,7 @@ while True:
         if not MC and not TA and LR and SC and TO:
             plant = threading.Thread(target=Hex.set_plant_flag)
             plant.start()
-            print('planting')
-            time.sleep(3)
+
 
         if P:
             n += 1
