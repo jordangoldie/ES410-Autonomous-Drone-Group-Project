@@ -4,7 +4,7 @@ import math
 
 
 def normalise(v):
-    v = v/np.linalg.norm(v)
+    v = v/npl.norm(v)
     return v
 
 
@@ -26,9 +26,9 @@ def cartesian_to_gps(vector_fo):
     long = math.asin(vector_fo[1]/(radius*math.cos(lat)))
     long2 = math.acos(vector_fo[0]/(radius*math.cos(lat)))
 
-    lat = (lat / math.pi) * 180
-    long = (long / math.pi) * 180
-    long2 = (long2 / math.pi) * 180
+    lat = (lat / math.pi) * 180.0
+    long = (long / math.pi) * 180.0
+    long2 = (long2 / math.pi) * 180.0
 
     return lat, long, long2
 
@@ -101,3 +101,13 @@ def get_circle_coords(lat, long, origin):
         circle_longs.append(long2)
 
     return circle_lats, circle_longs
+
+
+def distance_between(lat1, long1, lat2, long2, origin):
+
+    pos1 = get_vector(origin, lat1, long1)
+    pos2 = get_vector(origin, lat2, long2)
+    diff = pos2 - pos1
+    distance = npl.norm(diff)
+
+    return distance

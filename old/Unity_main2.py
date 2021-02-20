@@ -1,25 +1,12 @@
 from Drone import Drone
+from TCP import TCP
 from data_logging import DataLogging
-import time
-import socket
-from GPS import get_vector, set_origin
+from GPS2 import get_vector, set_origin
 
-Hex = Drone("127.0.0.1:14550")
-
-# create socket object
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-host_name = socket.gethostname()
-host_ip = socket.gethostbyname(host_name)
-# host_ip = '0.0.0.0'
-print('[INFO] HOST IP: ', host_ip)
-port = 5598
-server_address = (host_ip, port)
-# bind socket
-# server_socket.bind(('localhost', 1234))
-server_socket.bind(server_address)
-# socket listen
-server_socket.listen(5)
-print("[INFO] NOW LISTENING AT: ", server_address)
+Hex = Drone("127.0.0.1:14550")  # create instance of drone class
+tcp = TCP(5598)  # create instance of tcp class
+tcp.bind_server_socket()
+client_socket = tcp.listen_for_tcp()
 
 lats = [-35.36265179, -35.36266860, -35.36309214, -35.36355729, -35.36354127]
 longs = [149.16401228, 149.16345636, 149.16293594, 149.16460797, 149.16399818]
@@ -34,33 +21,33 @@ InFlightLogging = DataLogging()
 InFlightLogging.PrepLogging()
 InFlightLogging.InfoLogging(Hex)
 
-# accepts the client socket object from unity (must press play on unity)
-while True:
-    print('[INFO] Accepting...')
-    client_socket, address = server_socket.accept()
-    print("[INFO] GOT CONNECTION FROM: ", address)
-    if client_socket:
-        break
-
 lat = Hex.get_current_location().lat
 lon = Hex.get_current_location().lon
 alt = Hex.get_current_location().alt
+roll = Hex.get_attitude().roll
+pitch = Hex.get_attitude().pitch
+yaw = Hex.get_attitude().yaw
 
 # sets the origin based on above 'get', would be better if this was done with home location
-pose, rot = set_origin(lat, lon)
-unity_vec = get_vector(pose, rot, lat, lon, alt)
+pose = set_origin(lat, lon)
+vector_fn = get_vector(pose, lat, lon, alt)
+string = f'{vector_fn[0]},{vector_fn[1]},{vector_fn[2]},{roll},{pitch},{yaw}'
 
 if client_socket:
-    client_socket.send(bytes(unity_vec, "utf-8"))
+    client_socket.send(bytes(string, "utf-8"))
 
 Hex.arm_and_takeoff(4)
 
 lat = Hex.get_current_location().lat
 lon = Hex.get_current_location().lon
 alt = Hex.get_current_location().alt
-unity_vec = get_vector(pose, rot, lat, lon, 4)
+roll = Hex.get_attitude().roll
+pitch = Hex.get_attitude().pitch
+yaw = Hex.get_attitude().yaw
+vector_fn = get_vector(pose, lat, lon, 4)
+string = f'{vector_fn[0]},{vector_fn[1]},{vector_fn[2]},{roll},{pitch},{yaw}'
 if client_socket:
-    client_socket.send(bytes(unity_vec, "utf-8"))
+    client_socket.send(bytes(string, "utf-8"))
 
 for i in range(plant_count):
     plant_location = Hex.get_plant_location(lats[i], longs[i], 4)
@@ -76,10 +63,13 @@ for i in range(plant_count):
         lat = Hex.get_current_location().lat
         lon = Hex.get_current_location().lon
         alt = Hex.get_current_location().alt
-
+        roll = Hex.get_attitude().roll
+        pitch = Hex.get_attitude().pitch
+        yaw = Hex.get_attitude().yaw
         # calculates cartesian vector from origin to new point and sends to unity
-        unity_vec = get_vector(pose, rot, lat, lon, alt)
-        client_socket.send(bytes(unity_vec, "utf-8"))
+        vector_fn = get_vector(pose, lat, lon, 4)
+        string = f'{vector_fn[0]},{vector_fn[1]},{vector_fn[2]},{roll},{pitch},{yaw}'
+        client_socket.send(bytes(string, "utf-8"))
 
     plant_flag = Hex.set_plant_flag()
     print("plant flag:", plant_flag)

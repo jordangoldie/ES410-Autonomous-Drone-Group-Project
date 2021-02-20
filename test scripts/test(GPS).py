@@ -1,7 +1,4 @@
-import numpy.linalg
-import numpy as np
-import math
-from GPS import get_vector, set_origin, get_gps
+from old.GPS import get_vector, set_origin
 
 # origin
 latO = -35.3626697

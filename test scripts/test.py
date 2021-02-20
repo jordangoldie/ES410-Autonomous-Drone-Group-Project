@@ -1,6 +1,3 @@
-import numpy.linalg
-import numpy as np
-import math
 from GPS2 import get_vector, set_origin, get_gps
 
 # origin

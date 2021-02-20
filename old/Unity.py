@@ -2,7 +2,7 @@ from Drone import Drone
 from data_logging import DataLogging
 import time
 import socket
-from GPS import get_vector, set_origin
+from old.GPS import get_vector, set_origin
 
 Hex = Drone("127.0.0.1:14550")
 
