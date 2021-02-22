@@ -166,6 +166,44 @@ class Drone:
             self.vehicle.send_mavlink(msg)
             time.sleep(duration)
 
+    def send_yaw(self, angle):
+        # create the CONDITION_YAW command using command_long_encode()
+        msg = self.vehicle.message_factory.command_long_encode(
+            0, 0,  # target system, target component
+            mavutil.mavlink.MAV_CMD_CONDITION_YAW,  # command
+            0,  # confirmation
+            angle,  # param 1, yaw in degrees
+            45,  # param 2, yaw speed deg/s
+            -1,  # param 3, direction -1 ccw, 1 cw
+            0,  # param 4, relative offset 1, absolute angle 0
+            0, 0, 0)  # param 5 ~ 7 not used
+        # send command to vehicle
+        self.vehicle.send_mavlink(msg)
+
+    def send_global_velocity2(self, velocity_x, velocity_y, velocity_z, duration):
+        """
+        Move vehicle in direction based on specified velocity vectors.
+        """
+        msg = self.vehicle.message_factory.set_position_target_global_int_encode(
+            0,  # time_boot_ms (not used)
+            0, 0,  # target system, target component
+            mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT_INT,  # frame
+            0b0000111111000111,  # type_mask (only speeds enabled)
+            0,  # lat_int - X Position in WGS84 frame in 1e7 * meters
+            0,  # lon_int - Y Position in WGS84 frame in 1e7 * meters
+            0,  # alt - Altitude in meters in AMSL altitude(not WGS84 if absolute or relative)
+            # altitude above terrain if GLOBAL_TERRAIN_ALT_INT
+            velocity_x,  # X velocity in NED frame in m/s
+            velocity_y,  # Y velocity in NED frame in m/s
+            velocity_z,  # Z velocity in NED frame in m/s
+            0, 0, 0,  # afx, afy, afz acceleration (not supported yet, ignored in GCS_Mavlink)
+            0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
+
+        # send command to vehicle on 1 Hz cycle
+        for x in range(0, duration):
+            self.vehicle.send_mavlink(msg)
+            time.sleep(1)
+
     def event(self):
         flag = self.event_flag
         print("flag", flag)
@@ -240,11 +278,13 @@ class Drone:
         first_point = self.get_plant_location(lat, long2, wp[2])
         self.vehicle.simple_goto(first_point)
         time.sleep(1)'''
-        speed = 4
-        self.send_global_velocity(0, speed, 0, radius/speed)
+        speed = 1.5
+        self.send_yaw(270)
+        self.send_global_velocity2(0, speed, 0, 2)
 
         for i in range(0, len(vel_x)):
             self.send_global_velocity(vel_x[i], vel_y[i], 0, step_time)
+            self.send_yaw(270-i)
 
     def the_only_real_scan(self, duration, radius):
         self.eventThreadActive.set()

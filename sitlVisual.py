@@ -24,14 +24,14 @@ TO = 0
 while True:
 
     if TO == 0:
-        take_off = threading.Thread(target=Hex.arm_and_takeoff, args=[10])
+        take_off = threading.Thread(target=Hex.arm_and_takeoff, args=[3])
         take_off.start()
         TO = 1
 
     command = input('Give command:')
 
     if command == 'circle':
-        scan = threading.Thread(target=Hex.the_only_real_scan, args=(20, 4))
+        scan = threading.Thread(target=Hex.the_only_real_scan, args=(20, 2))
         scan.start()
 
     elif command == 'detect':
@@ -39,13 +39,12 @@ while True:
         vision.run_detection(20)
 
     elif command == 'scan':
-        scan = threading.Thread(target=Hex.the_only_real_scan, args=[20])
+        scan = threading.Thread(target=Hex.the_only_real_scan, args=(20, 2))
         scan.start()
-        vec = get_vector(Hex.origin, Hex.get_current_location().lat, Hex.get_current_location().lon)
-        print('got vector')
-        vision.tcp.send_message(f'1, {vec[0]}, {vec[1]}, 0')
-        print('sent vector')
+        vision.tcp.send_message('1')
         vision.run_detection(20)
+        if vision.eventObjectDetected.set():
+            print('BLUDCLART ppl dem')
 
     elif command == 'fly':
         Hex.send_global_velocity(4, 4, 0, 10)
@@ -62,3 +61,11 @@ while True:
     elif command == 'fly to way point':
         wp = Hex.get_plant_location(lats[0], longs[0], 10)
         Hex.fly_to_point(wp, airspeed)
+
+    elif command == 'yaw+':
+        Hex.send_yaw(90)
+        print('yaw msg sent')
+
+    elif command == 'yaw-':
+        Hex.send_yaw(270)
+        print('yaw msg sent')

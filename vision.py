@@ -74,7 +74,7 @@ class DroneCamVision:
                 data += self.tcp.client_socket.recv(4096)
             frame_data = data[:msg_size]  # takes the bytes up to the size of the msg, leaving any excess
             data = data[msg_size:]  # assigns the excess to data as it is the beginning of the next msg
-            print("Frame data length: {}".format(len(frame_data)))
+            # print("Frame data length: {}".format(len(frame_data)))
             # print(frame_data)
 
             stream = BytesIO(frame_data)
@@ -107,17 +107,16 @@ class DroneCamVision:
                     if idx == 15:
                         box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
                         (startX, startY, endX, endY) = box.astype("int")
-
                         # draw the prediction on the frame
                         label = f'person {confidence*100}'
-                        cv2.rectangle(frame, (startX, startY), (endX, endY), COLORS[5], 2)
+                        cv2.rectangle(frame, (startX, startY), (endX, endY), self.colours[5], 2)
                         y = startY - 15 if startY - 15 > 15 else startY + 15
-                        cv2.putText(frame, label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[5], 2)
+                        cv2.putText(frame, label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.colours[5], 2)
                         detect = 1
                         self.eventObjectDetected.set()
 
             # show the output frame
-            # cv2.imshow("Unity Feed", frame)
+            cv2.imshow("Unity Feed", frame)
 
         cv2.destroyAllWindows()
         self.tcp.client_socket.close()
