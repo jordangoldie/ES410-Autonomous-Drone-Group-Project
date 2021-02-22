@@ -1,7 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b292f9d2-8325-4f56-a6e1-350e143b9f94" name="Default Changelist" comment="event based script and updated drone class" />
+    <list default="true" id="b292f9d2-8325-4f56-a6e1-350e143b9f94" name="Default Changelist" comment="event based script and updated drone class">
+      <change afterPath="$PROJECT_DIR$/Drone_Event2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/event_test.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/event_test2.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flag_detector.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/main_event.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Drone.py" beforeDir="false" afterPath="$PROJECT_DIR$/Drone.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Drone_Event.py" beforeDir="false" afterPath="$PROJECT_DIR$/Drone_Event.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Drone_temp.py" beforeDir="false" afterPath="$PROJECT_DIR$/Drone_temp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TCP.py" beforeDir="false" afterPath="$PROJECT_DIR$/TCP.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main2.py" beforeDir="false" afterPath="$PROJECT_DIR$/main2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_event" beforeDir="false" afterPath="$PROJECT_DIR$/main_event" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -21,6 +34,14 @@
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
   </component>
   <component name="ProjectId" id="1ohKMxnLDUBVj66dT3Pr9intgdW" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -62,7 +83,21 @@
       <option name="project" value="LOCAL" />
       <updated>1613854756561</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="workspace">
+      <created>1613866982721</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1613866982721</updated>
+    </task>
+    <task id="LOCAL-00005" summary="workspace">
+      <created>1613867014792</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1613867014792</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -80,6 +115,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="added plant indicator to determine whether to plant, works when indicator is 0, but when indicator is 1, runs multiple threads simultaneously" />
     <MESSAGE value="event based script and updated drone class" />
-    <option name="LAST_COMMIT_MESSAGE" value="event based script and updated drone class" />
+    <MESSAGE value="workspace" />
+    <option name="LAST_COMMIT_MESSAGE" value="workspace" />
   </component>
 </project>

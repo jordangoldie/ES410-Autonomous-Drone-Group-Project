@@ -5,9 +5,9 @@ from pymavlink import mavutil
 import time                          # import time library
 import math                          # import math library
 import threading
-from GPS2 import get_vector, get_gps, distance_between
+from GPS2 import get_vector, get_gps
 import numpy as np
-from TCP import TCP
+
 
 # Drone class
 class Drone:
@@ -15,15 +15,14 @@ class Drone:
         try:
             self.vehicle = connect(connection_str)
             self.event_flag = 0
-            self.eventTakeOffComplete = threading.Event()
+            self.eventThreadSeqActive = threading.Event()
             self.eventMissionComplete = threading.Event()
-            self.eventThreadActive = threading.Event()
+            self.eventTakeOffComplete = threading.Event()
             self.eventLocationReached = threading.Event()
-            self.eventObjectDetected = threading.Event()
             self.eventScanComplete = threading.Event()
+            self.eventObjectDetected = threading.Event()
             self.eventPlantComplete = threading.Event()
-            self.eventDistanceThreadActive = threading.Event()
-            self.eventPlantLocationReached = threading.Event()
+            self.waypoint_count = 0
             self.origin = np.array
 
         except dk.APIException:
@@ -33,7 +32,7 @@ class Drone:
         """
         Arms vehicle and fly to aTargetAltitude.
         """
-        self.eventThreadActive.set()
+        self.eventThreadSeqActive.set()
         print("Basic pre-arm checks")
         # Don't try to arm until autopilot is ready
         while not self.vehicle.is_armable:
@@ -64,13 +63,7 @@ class Drone:
             time.sleep(1)
 
         self.eventTakeOffComplete.set()
-        self.eventThreadActive.clear()
-
-    def distance_to_point_m(self, point):
-        dlat = point.lat - self.vehicle.location.global_relative_frame.lat
-        dlong = point.lon - self.vehicle.location.global_relative_frame.lon
-        distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
-        return distance
+        self.eventThreadSeqActive.clear()
 
     def get_current_location(self):
         current_location = self.vehicle.location.global_relative_frame
@@ -96,88 +89,53 @@ class Drone:
         plant_location = dk.LocationGlobalRelative(lat, lon, alt)
         return plant_location
 
-    def fly_to_point(self, location, airspeed):
-        self.eventThreadActive.set()
+    def fly_to_point(self, location, airspeed, plant_flag):
+        lat = location.lat
+        lon = location.lon
+        loc = location
+        self.eventTakeOffComplete.wait()
         self.vehicle.airspeed = airspeed
         print("Flying towards point")
-        self.vehicle.simple_goto(location)
-
-    def fly_to_point2(self, location, airspeed):
-        self.eventThreadActive.set()
-        self.vehicle.airspeed = airspeed
-        print("Flying towards point")
-        self.vehicle.simple_goto(location)
+        self.vehicle.simple_goto(loc)
         while True:
-            dlat = location.lat - self.vehicle.location.global_relative_frame.lat
-            dlong = location.lon - self.vehicle.location.global_relative_frame.lon
+            dlat = lat - self.vehicle.location.global_relative_frame.lat
+            dlong = lon - self.vehicle.location.global_relative_frame.lon
             distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
             print("distance to point:", distance)
             if distance <= 1:
                 self.eventLocationReached.set()
-                self.eventThreadActive.clear()
+                if plant_flag == 0:
+                    self.eventLocationReached.clear()
+                    self.eventThreadSeqActive.clear()
                 break
 
             time.sleep(3)
 
         return print("location reached")
 
-    def check_distance(self, location, plant_indicator):
-        '''dlat = plant_location.lat - self.vehicle.location.global_relative_frame.lat
-        dlong = plant_location.lon - self.vehicle.location.global_relative_frame.lon
-        distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5'''
-        while True:
+    def scan(self, detection):
+        self.eventLocationReached.wait()
+        for i in range(5):
             time.sleep(1)
+            print("scanning")
+        print("scan complete")
 
-            '''Returns the ground distance in metres between two LocationGlobal objects.
+        if detection == 1:
+            self.eventObjectDetected.set()
 
-               This method is an approximation, and will not be accurate over large distances and close to the 
-               earth's poles. It comes from the ArduPilot test code: 
-               https://github.com/diydrones/ardupilot/blob/master/Tools/autotest/common.py'''
-            dlat = location.lat - self.vehicle.location.global_relative_frame.lat
-            dlong = location.lon - self.vehicle.location.global_relative_frame.lon
-            distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
-            print(distance)
-            if distance <= 1:
-                if plant_indicator == 1:
-                    self.eventPlantLocationReached.set()
-                    self.eventThreadActive.clear()
-                    self.eventDistanceThreadActive.clear()
-                else:
-                    self.eventLocationReached.set()
-                    self.eventThreadActive.clear()
-                    self.eventDistanceThreadActive.clear()
-                break
-            else:
-                self.eventLocationReached.clear()
-            time.sleep(2)
-
-        return print("location reached")
-
-    def plant_wait(self, plant_time):
-        for i in range(plant_time):
-            print("planting...")
-            time.sleep(1)
+        self.eventScanComplete.set()
 
     def set_plant_flag(self):
-        self.eventThreadActive.set()
+        self.eventScanComplete.wait()
         for i in range(3):
             print("planting")
             time.sleep(1)
         print("planting complete")
-        self.eventPlantComplete.set()
-        self.eventThreadActive.clear()
+        self.eventLocationReached.clear()
+        self.eventScanComplete.clear()
+        self.eventThreadSeqActive.clear()
+        self.waypoint_count += 1
 
-    def circle(self):
-        self.eventThreadActive.set()
-        # change this later so it uses the current waypoint target
-        lat = self.get_current_location().lat
-        lon = self.get_current_location().lon
-        alt = self.get_current_location().alt
-        wp = np.array([lat, lon, alt])
-        self.get_circle_coords(lat, lon, self.origin)
-        self.manual_circle(wp, self.origin)
-        self.eventScanComplete.set()
-        self.eventThreadActive.clear()
 
     def send_global_velocity(self, velocity_x, velocity_y, velocity_z, duration):
         """
@@ -211,8 +169,8 @@ class Drone:
         self.event_flag = 0
 
     def return_home(self):
+        # self.eventMissionComplete.wait()
         self.vehicle.mode = VehicleMode("RTL")
-        self.eventThreadActive.set()
 
     def get_positional_data(self, origin):
         lat = self.get_current_location().lat
@@ -260,21 +218,3 @@ class Drone:
             circle_p = self.get_plant_location(lats[i], longs[i], wp[2])
             self.fly_to_point(circle_p, 5)
             time.sleep(0.5)
-
-    def scan(self, detection):
-        self.eventThreadActive.set()
-
-        for i in range(5):
-            time.sleep(1)
-            print("scanning")
-        print("scan complete")
-
-        if detection == 1:
-            self.eventObjectDetected.set()
-
-        self.eventScanComplete.set()
-        self.eventThreadActive.clear()
-
-
-
-

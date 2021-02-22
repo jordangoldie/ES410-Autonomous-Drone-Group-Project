@@ -67,12 +67,6 @@ class Drone:
 
         self.eventThreadActive.clear()
 
-    def distance_to_point_m(self, point):
-        dlat = point.lat - self.vehicle.location.global_relative_frame.lat
-        dlong = point.lon - self.vehicle.location.global_relative_frame.lon
-        distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
-        return distance
-
     def get_current_location(self):
         current_location = self.vehicle.location.global_relative_frame
         return current_location
@@ -248,7 +242,6 @@ class Drone:
             vel_y.append(vec_y[i]/step_time)
 
         return vel_x, vel_y
-
 
     def manual_circle(self, wp, origin, duration):
         circle_x, circle_y = self.get_circle_coords(wp[0], wp[1], origin)
