@@ -26,6 +26,7 @@ class Drone:
             self.eventDistanceThreadActive = threading.Event()
             self.eventPlantLocationReached = threading.Event()
             self.origin = np.array
+            self.vision_tcp = None
 
         except dk.APIException:
             print("Timeout")
@@ -120,19 +121,10 @@ class Drone:
             distance = distance_between(lat, long, wp_lat, wp_long, self.origin)
             print(distance)
             if distance <= 1:
-                if plant_indicator == 1:
-                    self.eventPlantLocationReached.set()
-                    self.eventThreadActive.clear()
-                    self.eventDistanceThreadActive.clear()
-                else:
-                    self.eventLocationReached.set()
-                    self.eventThreadActive.clear()
-                    self.eventDistanceThreadActive.clear()
+                self.eventLocationReached.set()
+                self.eventThreadActive.clear()
+                self.eventDistanceThreadActive.clear()
                 break
-            else:
-                self.eventLocationReached.clear()
-            time.sleep(2)
-
         return print("location reached")
 
     def plant_wait(self, plant_time):
@@ -149,18 +141,6 @@ class Drone:
         self.eventPlant.set()
         self.eventThreadActive.clear()
         self.eventScanComplete.clear()
-
-    def circle(self, duration):
-        self.eventThreadActive.set()
-        # change this later so it uses the current waypoint target
-        lat = self.get_current_location().lat
-        lon = self.get_current_location().lon
-        alt = self.get_current_location().alt
-        wp = np.array([lat, lon, alt])
-        self.manual_circle(wp, self.origin, duration)
-        print('scan complete')
-        self.eventScanComplete.set()
-        self.eventThreadActive.clear()
 
     def send_global_velocity(self, velocity_x, velocity_y, velocity_z, duration):
         """
@@ -211,9 +191,8 @@ class Drone:
 
         return string
 
-    def get_circle_coords(self, lat, long, origin):
-        radius = 2
-        wp_pos = get_vector(origin, lat, long)
+    def get_circle_coords(self, lat, long, radius):
+        wp_pos = get_vector(self.origin, lat, long)
 
         circle_x = []
         circle_y = []
@@ -222,13 +201,15 @@ class Drone:
 
         for i in range(0, 360):
             rad = math.radians(i)
-            circle_x.append(wp_pos[0] + radius * math.cos(rad))
-            circle_y.append(wp_pos[1] + radius * math.sin(rad))
-            circle_point = np.array([circle_x[i], circle_y[i], wp_pos[2], 1])
+            circle_y.append(wp_pos[1] + radius * math.cos(rad))
+            circle_x.append(wp_pos[0] + radius * math.sin(rad))
+
+            # gets gps circle coordinates
+            '''circle_point = np.array([circle_x[i], circle_y[i], wp_pos[2], 1])
             circle_point = np.transpose(circle_point)
             lat, lon, long2 = get_gps(origin, circle_point)
             circle_lats.append(lat)
-            circle_longs.append(long2)
+            circle_longs.append(long2)'''
 
         return circle_x, circle_y
 
@@ -242,25 +223,40 @@ class Drone:
         vel_y = []
 
         for i in range(0, vec_num):
-            vec_x.append(circle_x[i+1] - circle_x[i])
+            vec_x.append(circle_x[i + 1] - circle_x[i])
             vec_y.append(circle_y[i + 1] - circle_y[i])
             vel_x.append(vec_x[i]/step_time)
             vel_y.append(vec_y[i]/step_time)
 
         return vel_x, vel_y
 
-
-    def manual_circle(self, wp, origin, duration):
-        circle_x, circle_y = self.get_circle_coords(wp[0], wp[1], origin)
+    def manual_circle(self, wp, duration, radius):
+        circle_x, circle_y = self.get_circle_coords(wp[0], wp[1], radius)
         vel_x, vel_y = self.circle_velocities(circle_x, circle_y, 20)
         step_time = duration/len(vel_x)
 
-        '''first_point = self.get_plant_location(lats[0], longs[0], wp[2])
+        '''first_point = np.transpose(np.array([circle_x[0], circle_y[0], wp[2], 1]))
+        lat, long, long2 = get_gps(self.origin, first_point)
+        first_point = self.get_plant_location(lat, long2, wp[2])
         self.vehicle.simple_goto(first_point)
         time.sleep(1)'''
+        speed = 4
+        self.send_global_velocity(0, speed, 0, radius/speed)
 
         for i in range(0, len(vel_x)):
             self.send_global_velocity(vel_x[i], vel_y[i], 0, step_time)
+
+    def the_only_real_scan(self, duration, radius):
+        self.eventThreadActive.set()
+        # change this later so it uses the current waypoint target
+        lat = self.get_current_location().lat
+        lon = self.get_current_location().lon
+        alt = self.get_current_location().alt
+        wp = np.array([lat, lon, alt])
+        self.manual_circle(wp, duration, radius)
+        print('scan complete')
+        self.eventScanComplete.set()
+        self.eventThreadActive.clear()
 
     def handle_unity(self):
         tcp = TCP(5598)  # create instance of tcp class

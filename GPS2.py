@@ -75,6 +75,8 @@ def get_vector(origin_pose_fo, lat, long):
 
 def get_gps(origin_pose, vector_fn):
 
+    # add if to check if vector is row vector and if so to transpose to column vector
+
     vector_fo = np.matmul(origin_pose, vector_fn)
 
     lat, long, long2 = cartesian_to_gps(vector_fo)

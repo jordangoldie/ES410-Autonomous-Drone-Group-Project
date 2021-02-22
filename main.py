@@ -3,6 +3,7 @@ from TCP import TCP
 from GPS2 import set_origin
 import time                              # import time library
 import threading
+from vision import DroneCamVision
 
 Hex = Drone("127.0.0.1:14550")    # Create instance of drone class, passing IP and Port for UDP socket
 position = Hex.get_current_location()
@@ -10,6 +11,9 @@ Hex.origin = set_origin(position.lat, position.lon)
 
 unity = threading.Thread(target=Hex.handle_unity)
 unity.start()
+
+vision = DroneCamVision(1234)
+vision.model_setup()
 
 # lats = [-35.36311393, -35.36265179, -35.36266860, -35.36309214, -35.36355729]     # latitudes of plant locations
 # longs = [149.16456640, 149.16401228, 149.16345636, 149.16293594, 149.16460797]    # longitudes of plant locations
@@ -28,7 +32,7 @@ while True:
     MC = Hex.eventMissionComplete.is_set()
     TA = Hex.eventThreadActive.is_set()
     LR = Hex.eventLocationReached.is_set()
-    OD = Hex.eventObjectDetected.is_set()
+    OD = vision.eventObjectDetected.is_set()
     SC = Hex.eventScanComplete.is_set()
     P = Hex.eventPlant.is_set()
     DTA = Hex.eventDistanceThreadActive.is_set()
@@ -51,11 +55,24 @@ while True:
         take_off.start()
         print('taking off')
 
+    if not MC and TO and not TA and not LR:
+        fly = threading.Thread(target=Hex.fly_to_point, args=([way_point], airspeed))
+        fly.start()
+
     if not MC and not TA and LR and TO:
-        scan = threading.Thread(target=Hex.circle, args=[20])
+        detect = threading.Thread(target=vision.run_detection)
+        detect.start()
+        scan = threading.Thread(target=Hex.the_only_real_scan, args=[20])
         scan.start()
 
-    if not MC and not TA and LR and SC and TO:
+    if not MC and not TA and OD and LR and SC and TO:
+        print('[INFO] Object detected, moving to next way point')
+        vision.eventObjectDetected.clear()
+        Hex.eventScanComplete.clear()
+        Hex.eventLocationReached.clear()
+        n += 1
+
+    if not MC and not TA and not OD and LR and SC and TO:
         plant = threading.Thread(target=Hex.set_plant_flag)
         plant.start()
         print('planting')
