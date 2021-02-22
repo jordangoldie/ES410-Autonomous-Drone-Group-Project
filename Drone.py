@@ -5,7 +5,7 @@ from pymavlink import mavutil
 import time                          # import time library
 import math                          # import math library
 import threading
-from GPS2 import get_vector, get_gps, distance_between
+from GPS import get_vector, get_gps, distance_between
 import numpy as np
 from TCP import TCP
 
@@ -15,14 +15,15 @@ class Drone:
         try:
             self.vehicle = connect(connection_str)
             self.event_flag = 0
-            self.eventThreadSeqActive = threading.Event()
-            self.eventMissionComplete = threading.Event()
             self.eventTakeOffComplete = threading.Event()
+            self.eventMissionComplete = threading.Event()
+            self.eventThreadActive = threading.Event()
             self.eventLocationReached = threading.Event()
-            self.eventScanComplete = threading.Event()
             self.eventObjectDetected = threading.Event()
+            self.eventScanComplete = threading.Event()
             self.eventPlantComplete = threading.Event()
-            self.waypoint_count = 0
+            self.eventDistanceThreadActive = threading.Event()
+            self.eventPlantLocationReached = threading.Event()
             self.origin = np.array
 
         except dk.APIException:
@@ -32,6 +33,7 @@ class Drone:
         """
         Arms vehicle and fly to aTargetAltitude.
         """
+        self.eventThreadActive.set()
         print("Basic pre-arm checks")
         # Don't try to arm until autopilot is ready
         while not self.vehicle.is_armable:
@@ -62,6 +64,7 @@ class Drone:
             time.sleep(1)
 
         self.eventTakeOffComplete.set()
+        self.eventThreadActive.clear()
 
     def get_current_location(self):
         current_location = self.vehicle.location.global_relative_frame
@@ -87,8 +90,8 @@ class Drone:
         plant_location = dk.LocationGlobalRelative(lat, lon, alt)
         return plant_location
 
-    def fly_to_point(self, location, airspeed, plant_flag):
-        self.eventTakeOffComplete.wait()
+    def fly_to_point(self, location, airspeed):
+        self.eventThreadActive.set()
         self.vehicle.airspeed = airspeed
         print("Flying towards point")
         self.vehicle.simple_goto(location)
@@ -99,62 +102,33 @@ class Drone:
             print("distance to point:", distance)
             if distance <= 1:
                 self.eventLocationReached.set()
-                if plant_flag == 0:
-                    self.eventLocationReached.clear()
-                    self.eventThreadSeqActive.clear()
+                self.eventThreadActive.clear()
                 break
 
             time.sleep(3)
 
         return print("location reached")
-
-    def fly_to_point2(self, location, airspeed, plant_flag):
-        lat = location.lat
-        lon = location.lon
-        loc = location
-        self.eventTakeOffComplete.wait()
-        self.vehicle.airspeed = airspeed
-        print("Flying towards point")
-        self.vehicle.simple_goto(loc)
-        while True:
-            dlat = lat - self.vehicle.location.global_relative_frame.lat
-            dlong = lon - self.vehicle.location.global_relative_frame.lon
-            distance = math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
-            print("distance to point:", distance)
-            if distance <= 1:
-                self.eventLocationReached.set()
-                if plant_flag == 0:
-                    self.eventLocationReached.clear()
-                    self.eventThreadSeqActive.clear()
-                break
-
-            time.sleep(3)
-
-        return print("location reached")
-
-    def scan(self, detection):
-        self.eventLocationReached.wait()
-        for i in range(5):
-            time.sleep(1)
-            print("scanning")
-        print("scan complete")
-
-        if detection == 1:
-            self.eventObjectDetected.set()
-
-        self.eventScanComplete.set()
 
     def set_plant_flag(self):
-        self.eventScanComplete.wait()
+        self.eventThreadActive.set()
         for i in range(3):
             print("planting")
             time.sleep(1)
         print("planting complete")
-        self.eventLocationReached.clear()
-        self.eventScanComplete.clear()
-        self.eventThreadSeqActive.clear()
-        self.waypoint_count += 1
+        self.eventPlantComplete.set()
+        self.eventThreadActive.clear()
 
+    def circle(self):
+        self.eventThreadActive.set()
+        # change this later so it uses the current waypoint target
+        lat = self.get_current_location().lat
+        lon = self.get_current_location().lon
+        alt = self.get_current_location().alt
+        wp = np.array([lat, lon, alt])
+        self.get_circle_coords(lat, lon, self.origin)
+        self.manual_circle(wp, self.origin)
+        self.eventScanComplete.set()
+        self.eventThreadActive.clear()
 
     def send_global_velocity(self, velocity_x, velocity_y, velocity_z, duration):
         """
@@ -180,16 +154,9 @@ class Drone:
             self.vehicle.send_mavlink(msg)
             time.sleep(1)
 
-    def event(self):
-        flag = self.event_flag
-        print("flag", flag)
-
-    def reset_event_flag(self):
-        self.event_flag = 0
-
     def return_home(self):
-        # self.eventMissionComplete.wait()
         self.vehicle.mode = VehicleMode("RTL")
+        self.eventThreadActive.set()
 
     def get_positional_data(self, origin):
         lat = self.get_current_location().lat
@@ -215,45 +182,42 @@ class Drone:
         circle_longs = []
 
         for i in range(0, 360):
-            rad = math.radians(i)
-            circle_y.append(wp_pos[1] + radius * math.cos(rad))
-            circle_x.append(wp_pos[0] + radius * math.sin(rad))
+            rad = int(i) * (math.pi/180)
+            circle_x.append(wp_pos[0] + radius * math.cos(rad))
+            circle_y.append(wp_pos[1] + radius * math.sin(rad))
             circle_point = np.array([circle_x[i], circle_y[i], wp_pos[2], 1])
             circle_point = np.transpose(circle_point)
             lat, lon, long2 = get_gps(origin, circle_point)
             circle_lats.append(lat)
             circle_longs.append(long2)
 
-        return circle_x, circle_y
+        return circle_lats, circle_longs
 
-    def circle_velocities(self, circle_x, circle_y, duration):
-        vec_num = len(circle_x) - 1
-        step_time = duration/vec_num
+    def manual_circle(self, wp, origin):
+        lats, longs = self.get_circle_coords(wp[0], wp[1], origin)
 
-        vec_x = []
-        vec_y = []
-        vel_x = []
-        vel_y = []
+        circle_p = self.get_plant_location(lats[0], longs[0], wp[2])
+        self.vehicle.simple_goto(circle_p)
+        time.sleep(3)
 
-        for i in range(0, vec_num):
-            vec_x.append(circle_x[i+1] - circle_x[i])
-            vec_y.append(circle_y[i + 1] - circle_y[i])
-            vel_x.append(vec_x[i]/step_time)
-            vel_y.append(vec_y[i]/step_time)
+        for i in range(0, len(lats)):
+            circle_p = self.get_plant_location(lats[i], longs[i], wp[2])
+            self.fly_to_point(circle_p, 5)
+            time.sleep(0.5)
 
-        return vel_x, vel_y
+    def scan(self, detection):
+        self.eventThreadActive.set()
 
-    def manual_circle(self, wp, origin, duration):
-        circle_x, circle_y = self.get_circle_coords(wp[0], wp[1], origin)
-        vel_x, vel_y = self.circle_velocities(circle_x, circle_y, 20)
-        step_time = duration / len(vel_x)
+        for i in range(5):
+            time.sleep(1)
+            print("scanning")
+        print("scan complete")
 
-        '''first_point = self.get_plant_location(lats[0], longs[0], wp[2])
-        self.vehicle.simple_goto(first_point)
-        time.sleep(1)'''
+        if detection == 1:
+            self.eventObjectDetected.set()
 
-        for i in range(0, len(vel_x)):
-            self.send_global_velocity(vel_x[i], vel_y[i], 0, step_time)
+        self.eventScanComplete.set()
+        self.eventThreadActive.clear()
 
     def handle_unity(self):
         tcp = TCP(5598)  # create instance of tcp class
@@ -266,3 +230,5 @@ class Drone:
             # speedx = self.get_ground_speed()
             # string = f'{speedx}, {speedy}, ...'
             # tcp.send_message(string)
+
+

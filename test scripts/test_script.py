@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from GPS2 import get_vector, set_origin, get_gps
+from GPS import get_vector, set_origin, get_gps
 
 # origin
 latO = -35.3626697

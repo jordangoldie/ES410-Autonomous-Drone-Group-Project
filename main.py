@@ -1,6 +1,6 @@
 from Drone import Drone                  # import Drone class from Drone.py
 from TCP import TCP
-from GPS2 import set_origin
+from GPS import set_origin
 import time                              # import time library
 import threading
 
@@ -49,7 +49,7 @@ while True:
 
         if TO and not TA:
             if not LR:
-                fly_to = threading.Thread(target=Hex.fly_to_point2, args=(way_points[n], airspeed))
+                fly_to = threading.Thread(target=Hex.fly_to_point, args=(way_points[n], airspeed))
                 fly_to.start()
                 print('flying to')
 

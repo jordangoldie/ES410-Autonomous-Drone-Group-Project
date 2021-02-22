@@ -2,7 +2,7 @@
 
 # ES410 Autonomous Drone
 # Owner:
-# File: data_logging.py
+# File: Data_logging.py
 # Description:
 from datetime import datetime
 import dronekit

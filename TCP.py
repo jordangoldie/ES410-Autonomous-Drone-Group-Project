@@ -9,7 +9,7 @@ class TCP:
         self.server_socket = server_socket
         self.message = str
         self.port = port
-        #self.ip_address = socket.gethostbyname(socket.gethostname())
+        self.ip_address = socket.gethostbyname(socket.gethostname())
         self.server_address = (self.port, self.ip_address)
         self.client_socket = None
 
