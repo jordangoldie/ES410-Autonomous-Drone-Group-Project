@@ -5,7 +5,7 @@ from pymavlink import mavutil
 import time                          # import time library
 import math                          # import math library
 import threading
-from GPS2 import get_vector, get_gps, distance_between
+from GPS import get_vector, distance_between
 import numpy as np
 from TCP import TCP
 
@@ -143,9 +143,6 @@ class Drone:
         self.eventScanComplete.clear()
 
     def send_global_velocity(self, velocity_x, velocity_y, velocity_z, duration):
-        """
-        Move vehicle in direction based on specified velocity vectors.
-        """
         msg = self.vehicle.message_factory.set_position_target_global_int_encode(
             0,  # time_boot_ms (not used)
             0, 0,  # target system, target component
@@ -181,9 +178,6 @@ class Drone:
         self.vehicle.send_mavlink(msg)
 
     def send_global_velocity2(self, velocity_x, velocity_y, velocity_z, duration):
-        """
-        Move vehicle in direction based on specified velocity vectors.
-        """
         msg = self.vehicle.message_factory.set_position_target_global_int_encode(
             0,  # time_boot_ms (not used)
             0, 0,  # target system, target component
@@ -234,20 +228,11 @@ class Drone:
 
         circle_x = []
         circle_y = []
-        circle_lats = []
-        circle_longs = []
 
         for i in range(0, 360):
             rad = math.radians(i)
             circle_y.append(wp_pos[1] + radius * math.cos(rad))
             circle_x.append(wp_pos[0] + radius * math.sin(rad))
-
-            # gets gps circle coordinates
-            '''circle_point = np.array([circle_x[i], circle_y[i], wp_pos[2], 1])
-            circle_point = np.transpose(circle_point)
-            lat, lon, long2 = get_gps(origin, circle_point)
-            circle_lats.append(lat)
-            circle_longs.append(long2)'''
 
         return circle_x, circle_y
 
@@ -273,11 +258,6 @@ class Drone:
         vel_x, vel_y = self.circle_velocities(circle_x, circle_y, 20)
         step_time = duration/len(vel_x)
 
-        '''first_point = np.transpose(np.array([circle_x[0], circle_y[0], wp[2], 1]))
-        lat, long, long2 = get_gps(self.origin, first_point)
-        first_point = self.get_plant_location(lat, long2, wp[2])
-        self.vehicle.simple_goto(first_point)
-        time.sleep(1)'''
         speed = 1.5
         self.send_yaw(270)
         self.send_global_velocity2(0, speed, 0, 2)

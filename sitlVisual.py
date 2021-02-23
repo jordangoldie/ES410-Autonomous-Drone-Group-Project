@@ -1,6 +1,6 @@
 from Drone import Drone                  # import Drone class from Drone.py
 from TCP import TCP
-from GPS2 import set_origin, get_vector
+from GPS import set_origin, get_vector
 import time
 import threading
 from vision import DroneCamVision

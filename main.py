@@ -1,6 +1,6 @@
 from Drone import Drone                  # import Drone class from Drone.py
 from TCP import TCP
-from GPS2 import set_origin
+from GPS import set_origin
 import time                              # import time library
 import threading
 from vision import DroneCamVision

@@ -2,8 +2,6 @@ import socket, sys, cv2, pickle, struct, zlib, imutils
 from PIL import Image
 from io import BytesIO
 import numpy as np
-from imutils.video import VideoStream
-from imutils.video import FPS
 from TCP import TCP
 import threading
 import time

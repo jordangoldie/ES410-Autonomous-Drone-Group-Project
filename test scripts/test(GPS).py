@@ -1,4 +1,4 @@
-from old.GPS import get_vector, set_origin
+from GPS import get_vector, set_origin, get_gps
 
 # origin
 latO = -35.3626697
@@ -10,8 +10,10 @@ latN = -35.36265179
 lonN = 149.16401228
 altN = 3.973
 
-origin_fo, rot = set_origin(latO, lonO)
+local_frame = set_origin(latO, lonO)
 
-string = get_vector(origin_fo, rot, latN, lonN, altN)
+vec_local = get_vector(local_frame, latN, lonN)
+
+lat, long = get_gps(local_frame, vec_local)
 
 print('Done')
