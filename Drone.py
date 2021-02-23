@@ -227,8 +227,5 @@ class Drone:
         while True:
             string = self.get_positional_data(self.origin)
             tcp.send_message(string)
-            # speedx = self.get_ground_speed()
-            # string = f'{speedx}, {speedy}, ...'
-            # tcp.send_message(string)
 
 
