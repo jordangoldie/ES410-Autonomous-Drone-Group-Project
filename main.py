@@ -3,6 +3,7 @@ from TCP import TCP
 from GPS import set_origin
 import time                              # import time library
 import threading
+from vision import DroneCamVision
 
 Hex = Drone("127.0.0.1:14550")    # Create instance of drone class, passing IP and Port for UDP socket
 position = Hex.get_current_location()
@@ -10,6 +11,9 @@ Hex.origin = set_origin(position.lat, position.lon)
 
 unity = threading.Thread(target=Hex.handle_unity)
 unity.start()
+
+vision = DroneCamVision(1234)
+vision.model_setup()
 
 lats = [-35.36311393, -35.36265179, -35.36266860, -35.36309214, -35.36355729]     # latitudes of plant locations
 longs = [149.16456640, 149.16401228, 149.16345636, 149.16293594, 149.16460797]    # longitudes of plant locations
@@ -59,8 +63,12 @@ while True:
                     print("not plant location")
                     Hex.eventLocationReached.clear()
                 elif plant_indicators[n] == 1:
-                    scan = threading.Thread(target=Hex.scan, args=[0])
+                    scan = threading.Thread(target=Hex.the_only_real_scan_shady, args=(20, 3))
                     scan.start()
+                    vision.tcp.send_message('1')
+                    vision.run_detection(20)
+                    # scan = threading.Thread(target=Hex.scan, args=[0])
+                    # scan.start()
 
             if SC and not P:
                 if OD:

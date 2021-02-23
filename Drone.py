@@ -9,6 +9,7 @@ from GPS import get_vector, get_gps, distance_between
 import numpy as np
 from TCP import TCP
 
+
 # Drone class
 class Drone:
     def __init__(self, connection_str):
@@ -25,6 +26,7 @@ class Drone:
             self.eventDistanceThreadActive = threading.Event()
             self.eventPlantLocationReached = threading.Event()
             self.origin = np.array
+            self.vision_tcp = None
 
         except dk.APIException:
             print("Timeout")
@@ -125,15 +127,47 @@ class Drone:
         lon = self.get_current_location().lon
         alt = self.get_current_location().alt
         wp = np.array([lat, lon, alt])
-        self.get_circle_coords(lat, lon, self.origin)
-        self.manual_circle(wp, self.origin)
+        self.get_circle_coords(lat, lon)
+        self.manual_circle(wp)
         self.eventScanComplete.set()
         self.eventThreadActive.clear()
 
     def send_global_velocity(self, velocity_x, velocity_y, velocity_z, duration):
-        """
-        Move vehicle in direction based on specified velocity vectors.
-        """
+        msg = self.vehicle.message_factory.set_position_target_global_int_encode(
+            0,  # time_boot_ms (not used)
+            0, 0,  # target system, target component
+            mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT_INT,  # frame
+            0b0000111111000111,  # type_mask (only speeds enabled)
+            0,  # lat_int - X Position in WGS84 frame in 1e7 * meters
+            0,  # lon_int - Y Position in WGS84 frame in 1e7 * meters
+            0,  # alt - Altitude in meters in AMSL altitude(not WGS84 if absolute or relative)
+            # altitude above terrain if GLOBAL_TERRAIN_ALT_INT
+            velocity_x,  # X velocity in NED frame in m/s
+            velocity_y,  # Y velocity in NED frame in m/s
+            velocity_z,  # Z velocity in NED frame in m/s
+            0, 0, 0,  # afx, afy, afz acceleration (not supported yet, ignored in GCS_Mavlink)
+            0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
+
+        # send command to vehicle on 1 Hz cycle
+        for x in range(0, 1):
+            self.vehicle.send_mavlink(msg)
+            time.sleep(duration)
+
+    def send_yaw(self, angle, speed, relative):
+        # create the CONDITION_YAW command using command_long_encode()
+        msg = self.vehicle.message_factory.command_long_encode(
+            0, 0,  # target system, target component
+            mavutil.mavlink.MAV_CMD_CONDITION_YAW,  # command
+            0,  # confirmation
+            angle,  # param 1, yaw in degrees
+            speed,  # param 2, yaw speed deg/s
+            -1,  # param 3, direction -1 ccw, 1 cw
+            relative,  # param 4, relative offset 1, absolute angle 0
+            0, 0, 0)  # param 5 ~ 7 not used
+        # send command to vehicle
+        self.vehicle.send_mavlink(msg)
+
+    def send_global_velocity2(self, velocity_x, velocity_y, velocity_z, duration):
         msg = self.vehicle.message_factory.set_position_target_global_int_encode(
             0,  # time_boot_ms (not used)
             0, 0,  # target system, target component
@@ -158,52 +192,71 @@ class Drone:
         self.vehicle.mode = VehicleMode("RTL")
         self.eventThreadActive.set()
 
-    def get_positional_data(self, origin):
+    def get_positional_data(self):
         lat = self.get_current_location().lat
         lon = self.get_current_location().lon
         alt = self.get_current_location().alt
-        vector_fn = get_vector(origin, lat, lon)
+        vec_local = get_vector(self.origin, lat, lon)
 
         roll = self.get_attitude().roll
         pitch = self.get_attitude().pitch
         yaw = self.get_attitude().yaw
 
-        string = f'{vector_fn[0]},{vector_fn[1]},{alt},{roll},{pitch},{yaw}'
+        string = f'{vec_local[0]},{vec_local[1]},{alt},{roll},{pitch},{yaw}'
 
         return string
 
-    def get_circle_coords(self, lat, long, origin):
-        radius = 2
-        wp_pos = get_vector(origin, lat, long)
+    # now that simple go to is not being used, you can change this as the vel should be the same each time
+    def circle_velocities(self, lat, long, radius, duration):
+        wp_pos = get_vector(self.origin, lat, long)
 
         circle_x = []
         circle_y = []
-        circle_lats = []
-        circle_longs = []
 
         for i in range(0, 360):
-            rad = int(i) * (math.pi/180)
-            circle_x.append(wp_pos[0] + radius * math.cos(rad))
-            circle_y.append(wp_pos[1] + radius * math.sin(rad))
-            circle_point = np.array([circle_x[i], circle_y[i], wp_pos[2], 1])
-            circle_point = np.transpose(circle_point)
-            lat, lon, long2 = get_gps(origin, circle_point)
-            circle_lats.append(lat)
-            circle_longs.append(long2)
+            rad = math.radians(i)
+            circle_y.append(wp_pos[1] + radius * math.cos(rad))
+            circle_x.append(wp_pos[0] + radius * math.sin(rad))
 
-        return circle_lats, circle_longs
+        vec_num = len(circle_x) - 1
+        step_time = duration/vec_num
 
-    def manual_circle(self, wp, origin):
-        lats, longs = self.get_circle_coords(wp[0], wp[1], origin)
+        vec_x = []
+        vec_y = []
+        vel_x = []
+        vel_y = []
 
-        circle_p = self.get_plant_location(lats[0], longs[0], wp[2])
-        self.vehicle.simple_goto(circle_p)
-        time.sleep(3)
+        for i in range(0, vec_num):
+            vec_x.append(circle_x[i + 1] - circle_x[i])
+            vec_y.append(circle_y[i + 1] - circle_y[i])
+            vel_x.append(vec_x[i]/step_time)
+            vel_y.append(vec_y[i]/step_time)
 
-        for i in range(0, len(lats)):
-            circle_p = self.get_plant_location(lats[i], longs[i], wp[2])
-            self.fly_to_point(circle_p, 5)
-            time.sleep(0.5)
+        return vel_x, vel_y
+
+    def manual_circle(self, wp, duration, radius):
+        vel_x, vel_y = self.circle_velocities(wp[0], wp[1], radius, duration)
+        step_time = duration/len(vel_x)
+
+        speed = 1.5
+        self.send_yaw(270, 90, 0)
+        self.send_global_velocity2(0, speed, 0, 2)
+
+        for i in range(0, len(vel_x)):
+            self.send_global_velocity(vel_x[i], vel_y[i], 0, step_time)
+            self.send_yaw(3.5, 18, 1)
+
+    def the_only_real_scan_shady(self, duration, radius):
+        self.eventThreadActive.set()
+        # change this later so it uses the current way point target
+        lat = self.get_current_location().lat
+        lon = self.get_current_location().lon
+        alt = self.get_current_location().alt
+        wp = np.array([lat, lon, alt])
+        self.manual_circle(wp, duration, radius)
+        print('scan complete')
+        self.eventScanComplete.set()
+        self.eventThreadActive.clear()
 
     def scan(self, detection):
         self.eventThreadActive.set()
@@ -225,7 +278,7 @@ class Drone:
         tcp.listen_for_tcp()
 
         while True:
-            string = self.get_positional_data(self.origin)
+            string = self.get_positional_data()
             tcp.send_message(string)
 
 
