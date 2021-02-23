@@ -87,6 +87,11 @@ class Drone:
         plant_location = dk.LocationGlobalRelative(lat, lon, alt)
         return plant_location
 
+    def adjust_altitude(self, alt):
+        location = self.get_current_location()
+        new_position = dk.LocationGlobalRelative(location.lat, location.lon, alt)
+        self.vehicle.simple_goto(new_position)
+
     def fly_to_point(self, location, airspeed, plant_flag):
         self.eventTakeOffComplete.wait()
         self.vehicle.airspeed = airspeed

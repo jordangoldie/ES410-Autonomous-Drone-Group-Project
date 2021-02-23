@@ -1,16 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b292f9d2-8325-4f56-a6e1-350e143b9f94" name="Default Changelist" comment="event based script and updated drone class, new event based testing scripts">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Drone_Event.py" beforeDir="false" afterPath="$PROJECT_DIR$/Drone_event.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Drone_temp.py" beforeDir="false" afterPath="$PROJECT_DIR$/Drone.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GPS2.py" beforeDir="false" afterPath="$PROJECT_DIR$/GPS.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data_logging.py" beforeDir="false" afterPath="$PROJECT_DIR$/Data_logging.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main2.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+    <list default="true" id="b292f9d2-8325-4f56-a6e1-350e143b9f94" name="Default Changelist" comment="scripts renamed and up to date">
+      <change beforePath="$PROJECT_DIR$/Drone_event.py" beforeDir="false" afterPath="$PROJECT_DIR$/Drone_event.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main_event.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_event.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sitlVisual.py" beforeDir="false" afterPath="$PROJECT_DIR$/sitl_visual.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test scripts/test_script.py" beforeDir="false" afterPath="$PROJECT_DIR$/test scripts/test_script.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -101,7 +94,14 @@
       <option name="project" value="LOCAL" />
       <updated>1614017437040</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="scripts renamed and up to date">
+      <created>1614019066969</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1614019066969</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -121,6 +121,7 @@
     <MESSAGE value="event based script and updated drone class" />
     <MESSAGE value="workspace" />
     <MESSAGE value="event based script and updated drone class, new event based testing scripts" />
-    <option name="LAST_COMMIT_MESSAGE" value="event based script and updated drone class, new event based testing scripts" />
+    <MESSAGE value="scripts renamed and up to date" />
+    <option name="LAST_COMMIT_MESSAGE" value="scripts renamed and up to date" />
   </component>
 </project>
