@@ -100,7 +100,7 @@ class DroneCamVision:
                 confidence = detections[0, 0, i, 2]
 
                 # filter out weak detections
-                if confidence > 0.8:
+                if confidence > 0.7:
                     # extract index of class label from 'detections'
                     # compute (x, y) coordinates of bounding box
                     idx = int(detections[0, 0, i, 1])
@@ -115,8 +115,7 @@ class DroneCamVision:
                         self.detect = 1
                         self.eventObjectDetected.set()
 
-
-            print(self.detect)
+            print(f'[INFO VISION] >> Frame output: {self.detect}')
 
             # show the output frame
             # cv2.imshow("Unity Feed", frame)

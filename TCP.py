@@ -31,7 +31,11 @@ class TCP:
     def receive_message(self):
         while True:
             msg = self.client_socket.recv(8)
-            if len(msg) <= 0:
+            msg = msg.decode("utf-8")
+            return msg
+
+    '''if len(msg) <= 0:
                 break
             msg += msg.decode("utf-8")
-        return msg
+        return msg'''
+
