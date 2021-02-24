@@ -3,43 +3,49 @@ import numpy as np
 import math
 
 
+# gets unit vector of v (np.array)
 def normalise(v):
     v = v/npl.norm(v)
     return v
 
 
+# gets the global cartesian coordinates (ECEF) of a gps point
 def gps_to_cartesian(lat, long):
     radius = 6378100
+    # degrees to radians:
     lat = (lat / 180) * math.pi
     long = (long / 180) * math.pi
-    # define vector from GPS origin to coordinate in cartesian
+    # define vector in global cartesian coordinate frame
     x = radius * math.cos(lat) * math.cos(long)
     y = radius * math.cos(lat) * math.sin(long)
     z = radius * math.sin(lat)
     return x, y, z
 
 
-def cartesian_to_gps(vector_fo):
+# gets the gps coordinate in lat long, given global cartesian (ECEF) coordinates
+def cartesian_to_gps(global_vec):
     radius = 6378100
 
-    lat = math.asin(vector_fo[2]/radius)
-    long = math.asin(vector_fo[1]/(radius*math.cos(lat)))
-    long2 = math.acos(vector_fo[0]/(radius*math.cos(lat)))
+    # inverse of that done above to find cartesian
+    lat = math.asin(global_vec[2]/radius)
+    long = math.asin(global_vec[1]/(radius*math.cos(lat)))
+    long2 = math.acos(global_vec[0]/(radius*math.cos(lat)))
 
+    # since inverse sin is used for long, the answer is 180 - ...
     lat = (lat / math.pi) * 180.0
-    long = (long / math.pi) * 180.0
+    long = 180 - (long / math.pi) * 180.0
     long2 = (long2 / math.pi) * 180.0
 
-    return lat, long, long2
+    return lat, long2
 
 
 def set_origin(lat, long):
 
-    # get cartesian coordinates relative to Global origin
+    # gets the global cartesian coordinates (ECEF) of the point
     x, y, z = gps_to_cartesian(lat, long)
-    r = np.array([x, y, z])  # vector coordinates to point
+    r = np.array([x, y, z])  # vector in global cartesian
 
-    # define rotation of new frame w.r.t origin
+    # define rotation of new frame w.r.t origin of global frame
     z = np.array([0, 0, 1])
     zn = normalise(r)
 
@@ -53,35 +59,41 @@ def set_origin(lat, long):
     xn = np.transpose(xn)
     r = np.transpose(r)
 
-    # Create Pose of new frame w.r.t origin (i.e frame Origin = fO)
+    # defines the pose of the new local cartesian coordinate frame w.r.t the global cartesian frame (ECEF)
     rot = np.c_[xn, yn, zn]
-    origin_pose_fo = np.vstack([np.c_[rot, r], np.array([0, 0, 0, 1])])
+    local_frame = np.vstack([np.c_[rot, r], np.array([0, 0, 0, 1])])
 
-    return origin_pose_fo
+    # returns the pose which defines the local cartesian coordinate frame
+    return local_frame
 
 
-def get_vector(origin_pose_fo, lat, long):
+# given the pose of the local cartesian coordinate frame, any GPS coordinate is given as a vector in this local frame
+def get_vector(local_frame, lat, long):
 
-    # convert to cartesian
+    # convert the new gps point to global cartesian (ECEF)
     x, y, z = gps_to_cartesian(lat, long)
-    p_fo = np.array([x, y, z, 1])
-    p_fo = np.transpose(p_fo)
+    vec_global = np.array([x, y, z, 1])
+    vec_global = np.transpose(vec_global)
 
-    # inverse of origin_pose_fo
-    vector_fn = np.matmul(npl.inv(origin_pose_fo), p_fo)
+    # uses the inverse of the local frame pose to
+    vec_local = np.matmul(npl.inv(local_frame), vec_global)
 
-    return vector_fn  # to return the values
-
-
-def get_gps(origin_pose, vector_fn):
-
-    vector_fo = np.matmul(origin_pose, vector_fn)
-
-    lat, long, long2 = cartesian_to_gps(vector_fo)
-
-    return lat, long, long2
+    return vec_local  # to return the values
 
 
+# gets the gps coordinates of a point (vec_local) defined in the local cartesian frame
+def get_gps(local_frame, vec_local):
+
+    # vec_local is a np.array in homogeneous coordinates, so [x y z 1]
+    vec_global = np.matmul(local_frame, vec_local)
+
+    # due to the use of inverse trigonometric functions in cartesian_to_gps, the longitude
+    lat, long = cartesian_to_gps(vec_global)
+
+    return lat, long
+
+
+# gets the coordinates of a circle about a given point lat long
 def get_circle_coords(lat, long, origin):
     radius = 2
     wp_pos = get_vector(origin, lat, long)
@@ -96,9 +108,9 @@ def get_circle_coords(lat, long, origin):
         circle_y.append(wp_pos[1] + radius * math.sin(i))
         circle_point = np.array([circle_x[i], circle_y[i], wp_pos[2], 1])
         circle_point = np.transpose(circle_point)
-        lat, lon, long2 = get_gps(origin, circle_point)
+        lat, lon, = get_gps(origin, circle_point)
         circle_lats.append(lat)
-        circle_longs.append(long2)
+        circle_longs.append(lon)
 
     return circle_lats, circle_longs
 
