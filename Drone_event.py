@@ -65,6 +65,7 @@ class Drone:
 
     def get_current_location(self):
         current_location = self.vehicle.location.global_relative_frame
+        # current_location = self.vehicle.location.local_frame
         return current_location
 
     def get_velocity(self):
@@ -164,13 +165,14 @@ class Drone:
         lat = self.get_current_location().lat
         lon = self.get_current_location().lon
         alt = self.get_current_location().alt
-        vector_fn = get_vector(origin, lat, lon)
+
+        vec_local = get_vector(origin, lat, lon)
 
         roll = self.get_attitude().roll
         pitch = self.get_attitude().pitch
         yaw = self.get_attitude().yaw
 
-        string = f'{vector_fn[0]},{vector_fn[1]},{alt},{roll},{pitch},{yaw}'
+        string = f'{vec_local[0]},{vec_local[1]},{alt},{roll},{pitch},{yaw}'
 
         return string
 

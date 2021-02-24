@@ -5,19 +5,26 @@ import time                              # import time library
 import threading
 from vision import DroneCamVision
 
-Hex = Drone("127.0.0.1:14550")    # Create instance of drone class, passing IP and Port for UDP socket
+Hex = Drone("127.0.0.1:14550") # Create instance of drone class, passing IP and Port for UDP socket
 position = Hex.get_current_location()
-Hex.origin = set_origin(position.lat, position.lon)
+Hex.origin = set_origin(-35.36355729, 149.16460797)
 
 unity = threading.Thread(target=Hex.handle_unity)
 unity.start()
 
-vision = DroneCamVision(1234)
-vision.model_setup()
+vision_communication = threading.Thread(target=Hex.handle_vision)
+vision_communication.start()
 
-lats = [-35.36311393, -35.36265179, -35.36266860, -35.36309214, -35.36355729]     # latitudes of plant locations
-longs = [149.16456640, 149.16401228, 149.16345636, 149.16293594, 149.16460797]    # longitudes of plant locations
-alts = [4, 4, 4, 4, 4]
+time.sleep(10)
+'''vision = DroneCamVision(1234)
+vision.model_setup()'''
+
+# lats = [-35.36311393, -35.36265179, -35.36266860, -35.36309214, -35.36355729]     # latitudes of plant locations
+# longs = [149.16456640, 149.16401228, 149.16345636, 149.16293594, 149.16460797]    # longitudes of plant locations
+lats = [-35.36311393, -35.36265179, -35.36266860, -35.36309214]    # latitudes of plant locations
+longs = [149.16456640, 149.16401228, 149.16345636, 149.16293594]
+
+alts = [3, 3, 3, 3, 3]
 plant_indicators = [0, 1, 0, 1, 0]
 
 way_points = []
@@ -26,7 +33,6 @@ for i in range(len(lats)):
 n = 0  # way point increment
 
 airspeed = 5           # set airspeed (m/s)
-
 
 while True:
 
@@ -49,30 +55,30 @@ while True:
             # arm drone and take off using method from Drone.py, passing specified altitude as argument
             take_off = threading.Thread(target=Hex.arm_and_takeoff, args=[alts[n]])
             take_off.start()
-            print('taking off')
+            print('[INFO MAIN] Armed, take off initiated')
 
         if TO and not TA:
             if not LR:
                 fly_to = threading.Thread(target=Hex.fly_to_point, args=(way_points[n], airspeed))
                 fly_to.start()
-                print('flying to')
+                print('[INFO MAIN] flying to')
 
             if LR and not SC:
                 if plant_indicators[n] == 0:
                     n += 1
-                    print("not plant location")
+                    print("[INFO MAIN] not plant location")
                     Hex.eventLocationReached.clear()
                 elif plant_indicators[n] == 1:
                     scan = threading.Thread(target=Hex.the_only_real_scan_shady, args=(20, 3))
+                    run_detection = threading.Thread(target=Hex.scan_output, args=[23])
                     scan.start()
-                    vision.tcp.send_message('1')
-                    vision.run_detection(20)
-                    # scan = threading.Thread(target=Hex.scan, args=[0])
-                    # scan.start()
+                    run_detection.start()
 
             if SC and not P:
                 if OD:
+                    '[INFO MAIN] Abandon plant location'
                     n += 1
+                    Hex.eventObjectDetected.clear()
                 else:
                     plant = threading.Thread(target=Hex.set_plant_flag)
                     plant.start()
@@ -87,5 +93,5 @@ while True:
     if MC and TO and not TA:
         complete_mission = threading.Thread(target=Hex.return_home)
         complete_mission.start()
-        print('returning to home location')
+        print('[INFO MAIN] returning to home location')
         break

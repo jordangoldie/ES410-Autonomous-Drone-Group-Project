@@ -20,9 +20,6 @@ class DroneCamVision:
         self.eventObjectDetected = threading.Event()
         self.detect = 0
 
-    def send_wp(self, wp):
-        self.tcp.send_message(f'{wp}')
-
     def model_setup(self):
         # file paths to the caffemodel and prototext file of dnn
         model = 'real-time-object-detection/MobileNetSSD_deploy.caffemodel'
@@ -41,7 +38,7 @@ class DroneCamVision:
         self.net = cv2.dnn.readNetFromCaffe(prototxt, model)
 
     def run_detection(self, duration):
-
+        self.tcp.send_message('1')
         data = b""
         payload_size = struct.calcsize(">L")
 
@@ -50,7 +47,12 @@ class DroneCamVision:
         while True:
 
             if time.time() > t_end:
-                cv2.destroyAllWindows()
+                # cv2.destroyAllWindows()
+                self.tcp.send_message('0')
+                if self.eventObjectDetected.is_set():
+                    print('[INFO VISION] Person detected')
+                else:
+                    print('[INFO VISION] Region safe to plant')
                 break
 
             # press 'q' key to break loop
@@ -77,7 +79,7 @@ class DroneCamVision:
             # print(frame_data)
 
             stream = BytesIO(frame_data)
-            image = Image.open(stream).convert("RGB") # changed from RGBA
+            image = Image.open(stream).convert("RGB")  # changed from RGBA
             stream.close()
 
             frame = np.array(image)
@@ -111,10 +113,10 @@ class DroneCamVision:
                         y = startY - 15 if startY - 15 > 15 else startY + 15
                         cv2.putText(frame, label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, self.colours[5], 2)
                         self.detect = 1
-                        print(self.detect)
                         self.eventObjectDetected.set()
 
-            # show the output frame
-            cv2.imshow("Unity Feed", frame)
 
-        cv2.destroyAllWindows()
+            print(self.detect)
+
+            # show the output frame
+            # cv2.imshow("Unity Feed", frame)

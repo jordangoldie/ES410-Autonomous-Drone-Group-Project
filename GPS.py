@@ -11,6 +11,8 @@ def normalise(v):
 
 # gets the global cartesian coordinates (ECEF) of a gps point
 def gps_to_cartesian(lat, long):
+    #lat = int
+    #long = int
     radius = 6378100
     # degrees to radians:
     lat = (lat / 180) * math.pi

@@ -20,13 +20,14 @@ class Drone:
             self.eventMissionComplete = threading.Event()
             self.eventThreadActive = threading.Event()
             self.eventLocationReached = threading.Event()
-            self.eventObjectDetected = threading.Event()
             self.eventScanComplete = threading.Event()
             self.eventPlantComplete = threading.Event()
             self.eventDistanceThreadActive = threading.Event()
             self.eventPlantLocationReached = threading.Event()
             self.origin = np.array
             self.vision_tcp = None
+            self.detect = 0
+            self.eventObjectDetected = threading.Event()
 
         except dk.APIException:
             print("Timeout")
@@ -36,32 +37,32 @@ class Drone:
         Arms vehicle and fly to aTargetAltitude.
         """
         self.eventThreadActive.set()
-        print("Basic pre-arm checks")
+        print("[INFO Drone] Basic pre-arm checks")
         # Don't try to arm until autopilot is ready
         while not self.vehicle.is_armable:
-            print(" Waiting for vehicle to initialise...")
+            print(" [INFO Drone] Waiting for vehicle to initialise...")
             time.sleep(1)
 
-        print("Arming motors")
+        print("[INFO Drone] Arming motors")
         # Copter should arm in GUIDED mode
         self.vehicle.mode = VehicleMode("GUIDED")
         self.vehicle.armed = True
 
         # Confirm vehicle armed before attempting to take off
         while not self.vehicle.armed:
-            print(" Waiting for arming...")
+            print(" [INFO Drone] Waiting for arming...")
             time.sleep(1)
 
-        print("Taking off!")
+        print("[INFO Drone] Taking off!")
         self.vehicle.simple_takeoff(aTargetAltitude)  # Take off to target altitude
 
         # Wait until the vehicle reaches a safe height before processing the goto (otherwise the command
         #  after Vehicle.simple_takeoff will execute immediately).
         while True:
-            print(" Altitude: ", self.vehicle.location.global_relative_frame.alt)
+            print("[INFO Drone] Altitude: ", self.vehicle.location.global_relative_frame.alt)
             # Break and return from function just below target altitude.
             if self.vehicle.location.global_relative_frame.alt >= aTargetAltitude * 0.97:
-                print("Reached target altitude")
+                print("[INFO Drone] Reached target altitude")
                 break
             time.sleep(1)
 
@@ -95,13 +96,13 @@ class Drone:
     def fly_to_point(self, location, airspeed):
         self.eventThreadActive.set()
         self.vehicle.airspeed = airspeed
-        print("Flying towards point")
+        print("[INFO Drone] Flying towards point")
         self.vehicle.simple_goto(location)
         while True:
             lat = self.vehicle.location.global_relative_frame.lat
             long = self.vehicle.location.global_relative_frame.lon
             distance = distance_between(lat, long, location.lat, location.lon, self.origin)
-            print("distance to point:", distance)
+            print("[INFO Drone] distance to point:", distance)
             if distance <= 1:
                 self.eventLocationReached.set()
                 self.eventThreadActive.clear()
@@ -109,27 +110,15 @@ class Drone:
 
             time.sleep(3)
 
-        return print("location reached")
+        return print("[INFO Drone] location reached")
 
     def set_plant_flag(self):
         self.eventThreadActive.set()
         for i in range(3):
-            print("planting")
+            print("[INFO Drone] planting")
             time.sleep(1)
-        print("planting complete")
+        print("[INFO Drone] planting complete")
         self.eventPlantComplete.set()
-        self.eventThreadActive.clear()
-
-    def circle(self):
-        self.eventThreadActive.set()
-        # change this later so it uses the current waypoint target
-        lat = self.get_current_location().lat
-        lon = self.get_current_location().lon
-        alt = self.get_current_location().alt
-        wp = np.array([lat, lon, alt])
-        self.get_circle_coords(lat, lon)
-        self.manual_circle(wp)
-        self.eventScanComplete.set()
         self.eventThreadActive.clear()
 
     def send_global_velocity(self, velocity_x, velocity_y, velocity_z, duration):
@@ -238,13 +227,16 @@ class Drone:
         vel_x, vel_y = self.circle_velocities(wp[0], wp[1], radius, duration)
         step_time = duration/len(vel_x)
 
-        speed = 1.5
+        speed = radius/2
         self.send_yaw(270, 90, 0)
-        self.send_global_velocity2(0, speed, 0, 2)
+        self.send_global_velocity2(speed, 0, 0, 2)
 
         for i in range(0, len(vel_x)):
-            self.send_global_velocity(vel_x[i], vel_y[i], 0, step_time)
+            self.send_global_velocity(vel_y[i], vel_x[i], 0, step_time)
             self.send_yaw(3.5, 18, 1)
+
+        self.send_yaw(270, 90, 0)
+        self.send_global_velocity2(-speed, 0, 0, 2)
 
     def the_only_real_scan_shady(self, duration, radius):
         self.eventThreadActive.set()
@@ -254,21 +246,7 @@ class Drone:
         alt = self.get_current_location().alt
         wp = np.array([lat, lon, alt])
         self.manual_circle(wp, duration, radius)
-        print('scan complete')
-        self.eventScanComplete.set()
-        self.eventThreadActive.clear()
-
-    def scan(self, detection):
-        self.eventThreadActive.set()
-
-        for i in range(5):
-            time.sleep(1)
-            print("scanning")
-        print("scan complete")
-
-        if detection == 1:
-            self.eventObjectDetected.set()
-
+        print('[INFO Drone] scan complete')
         self.eventScanComplete.set()
         self.eventThreadActive.clear()
 
@@ -280,5 +258,24 @@ class Drone:
         while True:
             string = self.get_positional_data()
             tcp.send_message(string)
+
+    def handle_vision(self):
+        tcp = TCP(5311)
+        tcp.bind_server_socket()
+        tcp.listen_for_tcp()
+
+        while True:
+            msg = tcp.receive_message()
+            self.detect = int(msg)
+
+    def scan_output(self, duration):
+        t_end = time.time() + duration
+        while True:
+            if time.time() > t_end:
+                break
+            if not self.eventObjectDetected.is_set():
+                if self.detect == 1:
+                    self.eventObjectDetected.set()
+                    print('[INFO Vision] Person detected')
 
 
