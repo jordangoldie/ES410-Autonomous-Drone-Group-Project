@@ -2,6 +2,7 @@ import dronekit as dk                # import drone kit library
 from dronekit import connect         # import connect method from drone kit
 from dronekit import VehicleMode     # import VehicleMode object from drone kit
 from pymavlink import mavutil
+import serial
 import time                          # import time library
 import math                          # import math library
 import threading
@@ -19,18 +20,20 @@ class Drone:
             self.eventMissionComplete = threading.Event()
             self.eventTakeOffComplete = threading.Event()
             self.eventLocationReached = threading.Event()
+            self.eventPlantAltReached = threading.Event()
             self.eventScanComplete = threading.Event()
             self.eventObjectDetected = threading.Event()
             self.eventPlantComplete = threading.Event()
+            self.eventFlyingAltReached = threading.Event()
             self.waypoint_count = 0
             self.origin = np.array
 
         except dk.APIException:
             print("Timeout")
 
-    def arm_and_takeoff(self, aTargetAltitude):
+    def arm_and_takeoff(self, target_alt):
         """
-        Arms vehicle and fly to aTargetAltitude.
+        Arms vehicle and fly to target altitude.
         """
         print("Basic pre-arm checks")
         # Don't try to arm until autopilot is ready
@@ -49,19 +52,20 @@ class Drone:
             time.sleep(1)
 
         print("Taking off!")
-        self.vehicle.simple_takeoff(aTargetAltitude)  # Take off to target altitude
+        self.vehicle.simple_takeoff(target_alt)  # Take off to target altitude
 
         # Wait until the vehicle reaches a safe height before processing the goto (otherwise the command
         #  after Vehicle.simple_takeoff will execute immediately).
         while True:
             print(" Altitude: ", self.vehicle.location.global_relative_frame.alt)
             # Break and return from function just below target altitude.
-            if self.vehicle.location.global_relative_frame.alt >= aTargetAltitude * 0.97:
+            if self.vehicle.location.global_relative_frame.alt >= target_alt * 0.97:
                 print("Reached target altitude")
                 break
             time.sleep(1)
 
         self.eventTakeOffComplete.set()
+        self.eventFlyingAltReached.set()
 
     def get_current_location(self):
         current_location = self.vehicle.location.global_relative_frame
@@ -87,13 +91,19 @@ class Drone:
         plant_location = dk.LocationGlobalRelative(lat, lon, alt)
         return plant_location
 
-    def adjust_altitude(self, alt):
+    def adjust_altitude(self, target_alt):
         location = self.get_current_location()
-        new_position = dk.LocationGlobalRelative(location.lat, location.lon, alt)
+        new_position = dk.LocationGlobalRelative(location.lat, location.lon, target_alt)
         self.vehicle.simple_goto(new_position)
+
+    def check_altitude(self, target_alt):
+        current_alt = self.get_current_location().alt
+        diff = abs(target_alt - current_alt)
+        return diff
 
     def fly_to_point(self, location, airspeed, plant_flag):
         self.eventTakeOffComplete.wait()
+        self.eventFlyingAltReached.wait()
         self.vehicle.airspeed = airspeed
         print("Flying towards point")
         self.vehicle.simple_goto(location)
@@ -113,8 +123,23 @@ class Drone:
 
         return print("location reached")
 
-    def scan(self, detection):
+    def descend_to_plant_alt(self, plant_alt):
         self.eventLocationReached.wait()
+        location = self.get_current_location()
+        new_position = dk.LocationGlobalRelative(location.lat, location.lon, plant_alt)
+        self.vehicle.simple_goto(new_position)
+        while True:
+            print(" Altitude: ", self.vehicle.location.global_relative_frame.alt)
+            # Break and return from function just above planting altitude.
+            if self.vehicle.location.global_relative_frame.alt <= plant_alt * 1.03:
+                print("Reached planting altitude")
+                self.eventPlantAltReached.set()
+                self.eventFlyingAltReached.clear()
+                break
+            time.sleep(1)
+
+    def scan(self, detection):
+        self.eventPlantAltReached.wait()
         for i in range(5):
             time.sleep(1)
             print("scanning")
@@ -127,15 +152,49 @@ class Drone:
 
     def set_plant_flag(self):
         self.eventScanComplete.wait()
+        # send flag
+        time.sleep(1)
+        while True:
+            load = input("Load: ")
+            if load == "load_success":
+                time.sleep(1)
+                dispense = input("Dispense: ")
+                print(dispense)
+                break
+            elif load == "Gate_Not_Positioned":
+                time.sleep(1)
+                print(load)
+                break
+        self.eventPlantComplete.set()
+
+    def plant(self, flag):
+        self.eventScanComplete.wait()
         for i in range(3):
             print("planting")
             time.sleep(1)
         print("planting complete")
-        self.eventLocationReached.clear()
-        self.eventScanComplete.clear()
-        self.eventThreadSeqActive.clear()
-        self.waypoint_count += 1
+        self.eventPlantComplete.set()
 
+    def ascend_to_flying_alt(self, flying_alt):
+        self.eventPlantComplete.wait()
+        location = self.get_current_location()
+        new_position = dk.LocationGlobalRelative(location.lat, location.lon, flying_alt)
+        self.vehicle.simple_goto(new_position)
+        while True:
+            print(" Altitude: ", self.vehicle.location.global_relative_frame.alt)
+            # Break and return from function just below flying altitude.
+            if self.vehicle.location.global_relative_frame.alt >= flying_alt * 0.97:
+                print("Reached planting altitude")
+                self.eventFlyingAltReached.set()
+                self.eventPlantAltReached.clear()
+                self.eventLocationReached.clear()
+                self.eventPlantAltReached.clear()
+                self.eventScanComplete.clear()
+                self.eventPlantComplete.clear()
+                self.eventThreadSeqActive.clear()
+                self.waypoint_count += 1
+                break
+            time.sleep(1)
 
     def send_global_velocity(self, velocity_x, velocity_y, velocity_z, duration):
         """

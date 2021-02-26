@@ -11,6 +11,8 @@ def normalise(v):
 
 # gets the global cartesian coordinates (ECEF) of a gps point
 def gps_to_cartesian(lat, long):
+    #lat = int
+    #long = int
     radius = 6378100
     # degrees to radians:
     lat = (lat / 180) * math.pi
@@ -47,11 +49,11 @@ def set_origin(lat, long):
 
     # define rotation of new frame w.r.t origin of global frame
     z = np.array([0, 0, 1])
-    zn = normalise(r)
+    zn = normalise(r)  # up
 
     # taking cross products of the unit vectors defines the new x and y axis (xn and yn)
-    xn = normalise(np.cross(z, zn))
-    yn = normalise(np.cross(zn, xn))
+    yn = normalise(np.cross(z, zn))  # east
+    xn = normalise(np.cross(zn, yn))  # north
 
     # transpose all vectors to be appended in rotation
     zn = np.transpose(zn)

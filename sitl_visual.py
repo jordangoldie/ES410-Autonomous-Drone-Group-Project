@@ -12,9 +12,9 @@ Hex.origin = set_origin(position.lat, position.lon)
 unity = threading.Thread(target=Hex.handle_unity)
 unity.start()
 
-vision = DroneCamVision(1234)
+'''vision = DroneCamVision(1234)
 vision.model_setup()
-print('vision init complete')
+print('vision init complete')'''
 
 airspeed = 5
 lats = [-35.36311393, -35.36265179]
@@ -31,7 +31,7 @@ while True:
     command = input('Give command:')
 
     if command == 'circle':
-        scan = threading.Thread(target=Hex.the_only_real_scan_shady, args=(20, 2))
+        scan = threading.Thread(target=Hex.scan, args=(20, 2.5))
         scan.start()
 
     elif command == 'detect':
@@ -39,7 +39,7 @@ while True:
         vision.run_detection(20)
 
     elif command == 'scan':
-        scan = threading.Thread(target=Hex.the_only_real_scan_shady, args=(20, 3))
+        scan = threading.Thread(target=Hex.scan, args=(20, 3, Hex.get_current_location))
         scan.start()
         vision.tcp.send_message('1')
         vision.run_detection(20)

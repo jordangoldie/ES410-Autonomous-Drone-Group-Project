@@ -27,41 +27,42 @@ class Drone:
             self.origin = np.array
             self.vision_tcp = None
             self.detect = 0
+            self.eventObjectDetected = threading.Event()
 
         except dk.APIException:
             print("Timeout")
 
-    def arm_and_takeoff(self, altitude):
+    def arm_and_takeoff(self, aTargetAltitude):
         """
         Arms vehicle and fly to aTargetAltitude.
         """
         self.eventThreadActive.set()
-        print("[INFO] >> Basic pre-arm checks")
+        print("[INFO Drone] Basic pre-arm checks")
         # Don't try to arm until autopilot is ready
         while not self.vehicle.is_armable:
-            print(" [INFO] >> Waiting for vehicle to initialise...")
+            print(" [INFO Drone] Waiting for vehicle to initialise...")
             time.sleep(1)
 
-        print("[INFO] >> Arming motors")
+        print("[INFO Drone] Arming motors")
         # Copter should arm in GUIDED mode
         self.vehicle.mode = VehicleMode("GUIDED")
         self.vehicle.armed = True
 
         # Confirm vehicle armed before attempting to take off
         while not self.vehicle.armed:
-            print(" [INFO] >> Waiting for arming...")
+            print(" [INFO Drone] Waiting for arming...")
             time.sleep(1)
 
-        print("[INFO] >> Taking off!")
-        self.vehicle.simple_takeoff(altitude)  # Take off to target altitude
+        print("[INFO Drone] Taking off!")
+        self.vehicle.simple_takeoff(aTargetAltitude)  # Take off to target altitude
 
         # Wait until the vehicle reaches a safe height before processing the goto (otherwise the command
         #  after Vehicle.simple_takeoff will execute immediately).
         while True:
-            print("[INFO] >> Altitude: ", self.vehicle.location.global_relative_frame.alt)
+            print("[INFO Drone] Altitude: ", self.vehicle.location.global_relative_frame.alt)
             # Break and return from function just below target altitude.
-            if self.vehicle.location.global_relative_frame.alt >= altitude * 0.97:
-                print("[INFO] >> Target altitude reached")
+            if self.vehicle.location.global_relative_frame.alt >= aTargetAltitude * 0.97:
+                print("[INFO Drone] Reached target altitude")
                 break
             time.sleep(1)
 
@@ -96,12 +97,13 @@ class Drone:
     def fly_to_point(self, location, airspeed):
         self.eventThreadActive.set()
         self.vehicle.airspeed = airspeed
+        print("[INFO Drone] Flying towards point")
         self.vehicle.simple_goto(location)
         while True:
             lat = self.vehicle.location.global_relative_frame.lat
             long = self.vehicle.location.global_relative_frame.lon
             distance = distance_between(lat, long, location.lat, location.lon, self.origin)
-            print("[INFO] >> distance to point:", distance)
+            print("[INFO Drone] distance to point:", distance)
             if distance <= 1:
                 self.eventLocationReached.set()
                 self.eventThreadActive.clear()
@@ -109,14 +111,14 @@ class Drone:
 
             time.sleep(3)
 
-        return print("[INFO] >> location reached")
+        return print("[INFO Drone] location reached")
 
     def set_plant_flag(self):
         self.eventThreadActive.set()
         for i in range(3):
-            print("[INFO] >> dispensing seed")
+            print("[INFO Drone] planting")
             time.sleep(1)
-        print("[INFO] >> dispensing complete")
+        print("[INFO Drone] planting complete")
         self.eventPlantComplete.set()
         self.eventThreadActive.clear()
 
@@ -244,17 +246,14 @@ class Drone:
             self.send_global_velocity(vel_north[i], vel_east[i], 0, time_per)
 
     def scan(self, duration, radius):
-        self.eventThreadActive.set()
         lat = self.get_current_location().lat
         lon = self.get_current_location().lon
         alt = self.get_current_location().alt
         self.set_roi(lat, lon, alt)
-        print('[INFO SCAN] >> ROI set')
+        print('roi set')
         self.circle(duration, radius)
         self.vehicle.simple_goto(self.get_plant_location(lat, lon, alt))
-        print('[INFO SCAN] >> scan complete')
-        self.eventScanComplete.set()
-        self.eventThreadActive.clear()
+        print('scan complete')
 
     def handle_unity(self):
         tcp = TCP(5598)  # create instance of tcp class
@@ -265,3 +264,23 @@ class Drone:
             string = self.get_positional_data()
             tcp.send_message(string)
 
+    def handle_vision(self):
+        tcp = TCP(5311)
+        tcp.bind_server_socket()
+        tcp.listen_for_tcp()
+
+        while True:
+            msg = tcp.receive_message()
+            self.detect = int(msg)
+            if self.detect == 1:
+                print(self.detect)
+
+    def scan_output(self, duration):
+        t_end = time.time() + duration
+        while True:
+            if time.time() > t_end:
+                break
+            if not self.eventObjectDetected.is_set():
+                if self.detect == 1:
+                    self.eventObjectDetected.set()
+                    print('[INFO Vision] Person detected')
