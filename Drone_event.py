@@ -2,6 +2,7 @@ import dronekit as dk                # import drone kit library
 from dronekit import connect         # import connect method from drone kit
 from dronekit import VehicleMode     # import VehicleMode object from drone kit
 from pymavlink import mavutil
+import serial
 import time                          # import time library
 import math                          # import math library
 import threading
@@ -150,6 +151,23 @@ class Drone:
         self.eventScanComplete.set()
 
     def set_plant_flag(self):
+        self.eventScanComplete.wait()
+        # send flag
+        time.sleep(1)
+        while True:
+            load = input("Load: ")
+            if load == "load_success":
+                time.sleep(1)
+                dispense = input("Dispense: ")
+                print(dispense)
+                break
+            elif load == "Gate_Not_Positioned":
+                time.sleep(1)
+                print(load)
+                break
+        self.eventPlantComplete.set()
+
+    def plant(self, flag):
         self.eventScanComplete.wait()
         for i in range(3):
             print("planting")

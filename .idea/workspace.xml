@@ -19,10 +19,10 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b292f9d2-8325-4f56-a6e1-350e143b9f94" name="Default Changelist" comment="event based script and updated drone class, new event based testing scripts">
+    <list default="true" id="b292f9d2-8325-4f56-a6e1-350e143b9f94" name="Default Changelist" comment="descend and ascend methods with altitude checking functionality, additional waypoint for home location added">
+      <change afterPath="$PROJECT_DIR$/arduino.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Drone_event.py" beforeDir="false" afterPath="$PROJECT_DIR$/Drone_event.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_event.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_event.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -96,7 +96,7 @@
       </list>
     </recent_temporary>
   </component>
-  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="false" />
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -150,7 +150,14 @@
       <option name="project" value="LOCAL" />
       <updated>1614017437040</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="descend and ascend methods with altitude checking functionality, additional waypoint for home location added">
+      <created>1614211839659</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1614211839659</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -170,41 +177,8 @@
     <MESSAGE value="event based script and updated drone class" />
     <MESSAGE value="workspace" />
     <MESSAGE value="event based script and updated drone class, new event based testing scripts" />
-    <option name="LAST_COMMIT_MESSAGE" value="event based script and updated drone class, new event based testing scripts" />
-  </component>
-  <component name="WindowStateProjectService">
-    <state width="1899" height="376" key="GridCell.Tab.0.bottom" timestamp="1614119627514">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1899" height="376" key="GridCell.Tab.0.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1614119627514" />
-    <state width="1899" height="376" key="GridCell.Tab.0.center" timestamp="1614119627512">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1899" height="376" key="GridCell.Tab.0.center/0.0.1920.1080@0.0.1920.1080" timestamp="1614119627512" />
-    <state width="1899" height="376" key="GridCell.Tab.0.left" timestamp="1614119627512">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1899" height="376" key="GridCell.Tab.0.left/0.0.1920.1080@0.0.1920.1080" timestamp="1614119627512" />
-    <state width="1899" height="376" key="GridCell.Tab.0.right" timestamp="1614119627513">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1899" height="376" key="GridCell.Tab.0.right/0.0.1920.1080@0.0.1920.1080" timestamp="1614119627513" />
-    <state width="1899" height="376" key="GridCell.Tab.1.bottom" timestamp="1614119628796">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1899" height="376" key="GridCell.Tab.1.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1614119628796" />
-    <state width="1899" height="376" key="GridCell.Tab.1.center" timestamp="1614119628795">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1899" height="376" key="GridCell.Tab.1.center/0.0.1920.1080@0.0.1920.1080" timestamp="1614119628795" />
-    <state width="1899" height="376" key="GridCell.Tab.1.left" timestamp="1614119628794">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1899" height="376" key="GridCell.Tab.1.left/0.0.1920.1080@0.0.1920.1080" timestamp="1614119628794" />
-    <state width="1899" height="376" key="GridCell.Tab.1.right" timestamp="1614119628795">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1899" height="376" key="GridCell.Tab.1.right/0.0.1920.1080@0.0.1920.1080" timestamp="1614119628795" />
+    <MESSAGE value="descend and ascend methods with altitude checking functionality, additional waypoint for home location added" />
+    <option name="LAST_COMMIT_MESSAGE" value="descend and ascend methods with altitude checking functionality, additional waypoint for home location added" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
