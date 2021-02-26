@@ -91,16 +91,6 @@ class Drone:
         plant_location = dk.LocationGlobalRelative(lat, lon, alt)
         return plant_location
 
-    def adjust_altitude(self, target_alt):
-        location = self.get_current_location()
-        new_position = dk.LocationGlobalRelative(location.lat, location.lon, target_alt)
-        self.vehicle.simple_goto(new_position)
-
-    def check_altitude(self, target_alt):
-        current_alt = self.get_current_location().alt
-        diff = abs(target_alt - current_alt)
-        return diff
-
     def fly_to_point(self, location, airspeed, plant_flag):
         self.eventTakeOffComplete.wait()
         self.eventFlyingAltReached.wait()
@@ -123,15 +113,15 @@ class Drone:
 
         return print("location reached")
 
-    def descend_to_plant_alt(self, plant_alt):
+    def descend(self, target_alt):
         self.eventLocationReached.wait()
         location = self.get_current_location()
-        new_position = dk.LocationGlobalRelative(location.lat, location.lon, plant_alt)
+        new_position = dk.LocationGlobalRelative(location.lat, location.lon, target_alt)
         self.vehicle.simple_goto(new_position)
         while True:
             print(" Altitude: ", self.vehicle.location.global_relative_frame.alt)
             # Break and return from function just above planting altitude.
-            if self.vehicle.location.global_relative_frame.alt <= plant_alt * 1.03:
+            if self.vehicle.location.global_relative_frame.alt <= target_alt * 1.03:
                 print("Reached planting altitude")
                 self.eventPlantAltReached.set()
                 self.eventFlyingAltReached.clear()
@@ -152,38 +142,21 @@ class Drone:
 
     def set_plant_flag(self):
         self.eventScanComplete.wait()
-        # send flag
-        time.sleep(1)
-        while True:
-            load = input("Load: ")
-            if load == "load_success":
-                time.sleep(1)
-                dispense = input("Dispense: ")
-                print(dispense)
-                break
-            elif load == "Gate_Not_Positioned":
-                time.sleep(1)
-                print(load)
-                break
-        self.eventPlantComplete.set()
-
-    def plant(self, flag):
-        self.eventScanComplete.wait()
         for i in range(3):
             print("planting")
             time.sleep(1)
         print("planting complete")
         self.eventPlantComplete.set()
 
-    def ascend_to_flying_alt(self, flying_alt):
+    def ascend(self, target_alt):
         self.eventPlantComplete.wait()
         location = self.get_current_location()
-        new_position = dk.LocationGlobalRelative(location.lat, location.lon, flying_alt)
+        new_position = dk.LocationGlobalRelative(location.lat, location.lon, target_alt)
         self.vehicle.simple_goto(new_position)
         while True:
             print(" Altitude: ", self.vehicle.location.global_relative_frame.alt)
             # Break and return from function just below flying altitude.
-            if self.vehicle.location.global_relative_frame.alt >= flying_alt * 0.97:
+            if self.vehicle.location.global_relative_frame.alt >= target_alt * 0.97:
                 print("Reached planting altitude")
                 self.eventFlyingAltReached.set()
                 self.eventPlantAltReached.clear()

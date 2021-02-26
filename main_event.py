@@ -48,7 +48,7 @@ while True:
         fly_to.start()
         print("fly to thread")
         if plant_flags[n] == 1:
-            descend = threading.Thread(target=Hex.descend_to_plant_alt, args=[plant_alt])
+            descend = threading.Thread(target=Hex.descend, args=[plant_alt])
             descend.start()
             print("descend thread")
             scan = threading.Thread(target=Hex.scan, args=[0])
@@ -57,7 +57,7 @@ while True:
             plant = threading.Thread(target=Hex.set_plant_flag)
             plant.start()
             print("plant thread")
-            ascend = threading.Thread(target=Hex.ascend_to_flying_alt, args=[flying_alt])
+            ascend = threading.Thread(target=Hex.ascend, args=[flying_alt])
             ascend.start()
             print("ascend thread")
         else:
