@@ -28,6 +28,7 @@ class Drone:
             self.vision_tcp = None
             self.detect = 0
             self.eventObjectDetected = threading.Event()
+            self.eventCircleStart = threading.Event()
 
         except dk.APIException:
             print("Timeout")
@@ -241,7 +242,8 @@ class Drone:
 
         # move to outer edge of circle and yaw to centre
         # self.send_yaw(270, 90, 0)
-        self.send_global_velocity(0, radius, 0, 2)
+        self.send_global_velocity(0, radius/2, 0, 2)
+        self.eventCircleStart.set()
         for i in range(len(vel_north)):
             self.send_global_velocity(vel_north[i], vel_east[i], 0, time_per)
 
@@ -277,9 +279,17 @@ class Drone:
                 print(self.detect)
 
     def scan_output(self, duration):
+        self.eventCircleStart.wait()
         t_end = time.time() + duration
+        frame_count = 0
+        detect_count = 0
         while True:
             if time.time() > t_end:
+                print(f'[INFO VISION] >> total frames = {frame_count}')
+                percent = (detect_count / frame_count)*100
+                print(f'[INFO VISION] >> detected frames = {detect_count}, {percent}')
                 break
             if self.detect == 1:
                 self.eventObjectDetected.set()
+                detect_count += 1
+            frame_count += 1

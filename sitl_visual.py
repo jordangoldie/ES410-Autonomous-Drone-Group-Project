@@ -14,6 +14,11 @@ print('[INFO MAIN] >> Origin for GPS transforms set')
 unity = threading.Thread(target=Hex.handle_unity)
 unity.start()
 
+vision_communication = threading.Thread(target=Hex.handle_vision)
+vision_communication.start()
+
+command = input('[INFO MAIN] >> PRESS ANY KEY TO CONTINUE')
+
 airspeed = 5
 alt = 3
 duration = 20
@@ -24,7 +29,7 @@ for i in range(len(lats)):
     way_points.append(Hex.get_plant_location(lats[i], longs[i], alt))
 TO = 0
 
-radius = 1
+radius = 2
 
 while True:
 
@@ -37,7 +42,7 @@ while True:
 
     if command == 'circle':
         location = Hex.get_plant_location(-35.36355729, 149.16460797, 3)
-        scan = threading.Thread(target=Hex.scan, args=(location, 20, radius))
+        scan = threading.Thread(target=Hex.scan, args=(location, 40, radius))
         scan.start()
 
     elif command == 'detect':
@@ -45,9 +50,10 @@ while True:
         vision.run_detection(20)'''
 
     elif command == 'scan':
-        scan = threading.Thread(target=Hex.scan, args=[way_points[n], duration, radius])
+        location = Hex.get_plant_location(-35.36355729, 149.16460797, 3)
+        scan = threading.Thread(target=Hex.scan, args=[location, duration, radius])
         scan.start()
-        run_detection = threading.Thread(target=Hex.scan_output, args=[30])
+        run_detection = threading.Thread(target=Hex.scan_output, args=[duration])
         run_detection.start()
 
     elif command == 'fly':

@@ -270,7 +270,7 @@ class Drone:
 
         # move to outer edge of circle and yaw to centre
         # self.send_yaw(270, 90, 0)
-        self.send_global_velocity(0, radius, 0, 2)
+        self.send_global_velocity(0, radius/2, 0, 2)
         for i in range(len(vel_north)):
             self.send_global_velocity(vel_north[i], vel_east[i], 0, time_per)
 

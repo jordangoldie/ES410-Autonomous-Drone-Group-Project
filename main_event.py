@@ -19,10 +19,11 @@ unity.start()
 
 vision_communication = threading.Thread(target=Hex.handle_vision)
 vision_communication.start()
-
-command = input('[INFO MAIN] >> Run vision script... then Unity... then PRESS ANY KEY')
-
 print('[INFO MAIN] >> TCP connections established')
+
+command = input('[INFO MAIN] >> PRESS ANY KEY TO CONTINUE')
+
+print('[INFO MAIN] >> Starting flight sequence')
 
 lats = [-35.36265179, -35.36266860, -35.36355729]     # latitudes of plant locations
 longs = [ 149.16401228, 149.16345636, 149.16460797]    # longitudes of plant locations
