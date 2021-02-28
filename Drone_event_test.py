@@ -295,7 +295,7 @@ class Drone:
         self.set_roi(lat, lon, alt)
         print('[INFO SCAN] >> ROI set')
         self.circle(duration, radius)
-        self.vehicle.simple_goto(self.get_plant_location(lat, lon, alt))
+        self.fly_to_point(self.get_plant_location(lat, lon, alt))
         print('[INFO SCAN] >> scan complete')
         self.eventScanComplete.set()
 

@@ -12,4 +12,11 @@ class Arduino:
         while True:
             message = self.serial.readline()
             if message:
-                print(message)
+                return message
+
+
+arduino = Arduino('/dev/ttyS0', 9600)
+
+arduino.send_plant_command(2)
+
+arduino.receive_message()

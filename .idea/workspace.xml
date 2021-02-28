@@ -20,14 +20,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b292f9d2-8325-4f56-a6e1-350e143b9f94" name="Default Changelist" comment="event based script and updated drone class, new event based testing scripts">
+      <change afterPath="$PROJECT_DIR$/Drone_event_test.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/main_event_test.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test_altitude.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Drone2.py" beforeDir="false" afterPath="$PROJECT_DIR$/Drone2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arduino.py" beforeDir="false" afterPath="$PROJECT_DIR$/Arduino.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Drone_event.py" beforeDir="false" afterPath="$PROJECT_DIR$/Drone_event.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/TCP.py" beforeDir="false" afterPath="$PROJECT_DIR$/TCP.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/external_vision.py" beforeDir="false" afterPath="$PROJECT_DIR$/external_vision.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main2.py" beforeDir="false" afterPath="$PROJECT_DIR$/main2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main_event.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_event.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vision.py" beforeDir="false" afterPath="$PROJECT_DIR$/vision.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,7 +43,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="Event_based" />
+        <entry key="$PROJECT_DIR$" value="main" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -159,13 +158,13 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.test_script" />
         <item itemvalue="Python.main" />
+        <item itemvalue="Python.test_script" />
         <item itemvalue="Python.test_local_frames" />
       </list>
     </recent_temporary>
   </component>
-  <component name="SpellCheckerSettings" BundledDictionaries="0" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" Dictionaries="0" CorrectionsLimit="5" DefaultDictionary="application-level" UseSingleDictionary="true" />
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -240,52 +239,6 @@
     <MESSAGE value="workspace" />
     <MESSAGE value="event based script and updated drone class, new event based testing scripts" />
     <option name="LAST_COMMIT_MESSAGE" value="event based script and updated drone class, new event based testing scripts" />
-  </component>
-  <component name="WindowStateProjectService">
-    <state width="1899" height="321" key="GridCell.Tab.0.bottom" timestamp="1614242364962">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1899" height="321" key="GridCell.Tab.0.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1614242364962" />
-    <state width="1899" height="180" key="GridCell.Tab.0.bottom/0.23.1920.1057@0.23.1920.1057" timestamp="1614120793683" />
-    <state width="1899" height="321" key="GridCell.Tab.0.center" timestamp="1614242364961">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1899" height="321" key="GridCell.Tab.0.center/0.0.1920.1080@0.0.1920.1080" timestamp="1614242364961" />
-    <state width="1899" height="180" key="GridCell.Tab.0.center/0.23.1920.1057@0.23.1920.1057" timestamp="1614120793682" />
-    <state width="1899" height="321" key="GridCell.Tab.0.left" timestamp="1614242364960">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1899" height="321" key="GridCell.Tab.0.left/0.0.1920.1080@0.0.1920.1080" timestamp="1614242364960" />
-    <state width="1899" height="180" key="GridCell.Tab.0.left/0.23.1920.1057@0.23.1920.1057" timestamp="1614120793681" />
-    <state width="1899" height="321" key="GridCell.Tab.0.right" timestamp="1614242364961">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1899" height="321" key="GridCell.Tab.0.right/0.0.1920.1080@0.0.1920.1080" timestamp="1614242364961" />
-    <state width="1899" height="180" key="GridCell.Tab.0.right/0.23.1920.1057@0.23.1920.1057" timestamp="1614120793682" />
-    <state width="1899" height="321" key="GridCell.Tab.1.bottom" timestamp="1614242364963">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1899" height="321" key="GridCell.Tab.1.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1614242364963" />
-    <state width="1899" height="180" key="GridCell.Tab.1.bottom/0.23.1920.1057@0.23.1920.1057" timestamp="1614120793685" />
-    <state width="1899" height="321" key="GridCell.Tab.1.center" timestamp="1614242364963">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1899" height="321" key="GridCell.Tab.1.center/0.0.1920.1080@0.0.1920.1080" timestamp="1614242364963" />
-    <state width="1899" height="180" key="GridCell.Tab.1.center/0.23.1920.1057@0.23.1920.1057" timestamp="1614120793684" />
-    <state width="1899" height="321" key="GridCell.Tab.1.left" timestamp="1614242364962">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1899" height="321" key="GridCell.Tab.1.left/0.0.1920.1080@0.0.1920.1080" timestamp="1614242364962" />
-    <state width="1899" height="180" key="GridCell.Tab.1.left/0.23.1920.1057@0.23.1920.1057" timestamp="1614120793684" />
-    <state width="1899" height="321" key="GridCell.Tab.1.right" timestamp="1614242364963">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state width="1899" height="321" key="GridCell.Tab.1.right/0.0.1920.1080@0.0.1920.1080" timestamp="1614242364963" />
-    <state width="1899" height="180" key="GridCell.Tab.1.right/0.23.1920.1057@0.23.1920.1057" timestamp="1614120793685" />
-    <state x="1909" y="47" key="SettingsEditor" timestamp="1614382684924">
-      <screen x="1440" y="-132" width="1920" height="1080" />
-    </state>
-    <state x="1909" y="47" key="SettingsEditor/0.0.1440.900/1440.-132.1920.1080@1440.-132.1920.1080" timestamp="1614382684924" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

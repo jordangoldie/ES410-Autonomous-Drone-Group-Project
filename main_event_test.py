@@ -1,4 +1,4 @@
-from Drone_event import Drone                  # import Drone class from Drone.py
+from Drone_event_test import Drone                  # import Drone class from Drone.py
 from TCP import TCP
 from GPS import set_origin, get_vector
 #from Data_logging import DataLogging     # import DataLogging class from Data_logging.py
