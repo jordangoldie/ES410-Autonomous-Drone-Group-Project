@@ -245,18 +245,19 @@ class Drone:
         for i in range(len(vel_north)):
             self.send_global_velocity(vel_north[i], vel_east[i], 0, time_per)
 
-    def scan(self, duration, radius):
-        lat = self.get_current_location().lat
-        lon = self.get_current_location().lon
-        alt = self.get_current_location().alt
+    def scan(self, location, duration, radius):
+        lat = location.lat
+        lon = location.lon
+        alt = location.alt
         self.set_roi(lat, lon, alt)
-        print('roi set')
+        print('[INFO SCAN] >> ROI set')
         self.circle(duration, radius)
         self.vehicle.simple_goto(self.get_plant_location(lat, lon, alt))
-        print('scan complete')
+        print('[INFO SCAN] >> scan complete')
+        self.eventScanComplete.set()
 
     def handle_unity(self):
-        tcp = TCP(5598)  # create instance of tcp class
+        tcp = TCP(5598, 'UNITY')  # create instance of tcp class
         tcp.bind_server_socket()
         tcp.listen_for_tcp()
 
@@ -265,7 +266,7 @@ class Drone:
             tcp.send_message(string)
 
     def handle_vision(self):
-        tcp = TCP(5311)
+        tcp = TCP(5311, 'VISION')
         tcp.bind_server_socket()
         tcp.listen_for_tcp()
 
@@ -282,4 +283,3 @@ class Drone:
                 break
             if self.detect == 1:
                 self.eventObjectDetected.set()
-                print('[INFO Vision] >> Person detected')

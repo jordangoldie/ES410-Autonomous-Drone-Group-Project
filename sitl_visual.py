@@ -1,4 +1,4 @@
-from Drone import Drone                  # import Drone class from Drone.py
+from Drone2 import Drone                  # import Drone class from Drone.py
 from TCP import TCP
 from GPS import set_origin, get_vector
 import time
@@ -6,20 +6,25 @@ import threading
 from vision import DroneCamVision
 
 Hex = Drone("127.0.0.1:14550")    # Create instance of drone class, passing IP and Port for UDP socket
-position = Hex.get_current_location()
-Hex.origin = set_origin(position.lat, position.lon)
+print('[INFO MAIN] >> UDP connection to SITL established')
+
+Hex.origin = set_origin(-35.36355729, 149.16460797)
+print('[INFO MAIN] >> Origin for GPS transforms set')
 
 unity = threading.Thread(target=Hex.handle_unity)
 unity.start()
 
-'''vision = DroneCamVision(1234)
-vision.model_setup()
-print('vision init complete')'''
-
 airspeed = 5
+alt = 3
+duration = 20
 lats = [-35.36311393, -35.36265179]
 longs = [149.16456640, 149.16401228]
+way_points = []
+for i in range(len(lats)):
+    way_points.append(Hex.get_plant_location(lats[i], longs[i], alt))
 TO = 0
+
+radius = 1
 
 while True:
 
@@ -31,24 +36,19 @@ while True:
     command = input('Give command:')
 
     if command == 'circle':
-        scan = threading.Thread(target=Hex.scan, args=(20, 2.5))
+        location = Hex.get_plant_location(-35.36355729, 149.16460797, 3)
+        scan = threading.Thread(target=Hex.scan, args=(location, 20, radius))
         scan.start()
 
     elif command == 'detect':
-        vision.tcp.send_message('1')
-        vision.run_detection(20)
+        '''vision.tcp.send_message('1')
+        vision.run_detection(20)'''
 
     elif command == 'scan':
-        scan = threading.Thread(target=Hex.scan, args=(20, 3, Hex.get_current_location))
+        scan = threading.Thread(target=Hex.scan, args=[way_points[n], duration, radius])
         scan.start()
-        vision.tcp.send_message('1')
-        vision.run_detection(20)
-
-    if vision.eventObjectDetected.set():
-        print('BLUDCLART ppl dem')
-
-    if vision.detect == 1:
-        print('BLUDFIYA')
+        run_detection = threading.Thread(target=Hex.scan_output, args=[30])
+        run_detection.start()
 
     elif command == 'fly':
         Hex.send_global_velocity(4, 4, 0, 10)

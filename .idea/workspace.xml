@@ -22,12 +22,7 @@
     <list default="true" id="b292f9d2-8325-4f56-a6e1-350e143b9f94" name="Default Changelist" comment="event based script and updated drone class, new event based testing scripts">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Drone2.py" beforeDir="false" afterPath="$PROJECT_DIR$/Drone2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Drone_event.py" beforeDir="false" afterPath="$PROJECT_DIR$/Drone_event.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/TCP.py" beforeDir="false" afterPath="$PROJECT_DIR$/TCP.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/external_vision.py" beforeDir="false" afterPath="$PROJECT_DIR$/external_vision.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main2.py" beforeDir="false" afterPath="$PROJECT_DIR$/main2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_event.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_event.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vision.py" beforeDir="false" afterPath="$PROJECT_DIR$/vision.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/sitl_visual.py" beforeDir="false" afterPath="$PROJECT_DIR$/sitl_visual.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
