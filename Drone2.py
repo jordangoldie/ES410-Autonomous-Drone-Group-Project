@@ -280,7 +280,6 @@ class Drone:
         while True:
             if time.time() > t_end:
                 break
-            if not self.eventObjectDetected.is_set():
-                if self.detect == 1:
-                    self.eventObjectDetected.set()
-                    print('[INFO Vision] Person detected')
+            if self.detect == 1:
+                self.eventObjectDetected.set()
+                print('[INFO Vision] >> Person detected')

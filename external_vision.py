@@ -5,14 +5,16 @@ from io import BytesIO
 import numpy as np
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect(('192.168.1.75', 5311))  # here we give the IP and port we WANT to connect to
-print("[INFO] CONNECTED TO:'192.168.1.78' ")
+IP = input('Input IP >> ')
+client_socket.connect((IP, 5311))  # here we give the IP and port we WANT to connect to
 
 vision = DroneCamVision(1234)
 vision.model_setup()
 
 data = b""
 payload_size = struct.calcsize(">L")
+
+vision.tcp.send_message('1')
 
 while True:
 

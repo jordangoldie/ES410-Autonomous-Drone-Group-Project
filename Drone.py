@@ -257,7 +257,7 @@ class Drone:
         self.eventThreadActive.clear()
 
     def handle_unity(self):
-        tcp = TCP(5598)  # create instance of tcp class
+        tcp = TCP(5598, 'UNITY')  # create instance of tcp class
         tcp.bind_server_socket()
         tcp.listen_for_tcp()
 

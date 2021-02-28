@@ -10,7 +10,7 @@ import time
 class DroneCamVision:
 
     def __init__(self, port):
-        self.tcp = TCP(port)
+        self.tcp = TCP(port, 'VISION CLASS')
         self.tcp.bind_server_socket()
         self.tcp.listen_for_tcp()
         self.net = None
@@ -119,3 +119,5 @@ class DroneCamVision:
 
             # show the output frame
             # cv2.imshow("Unity Feed", frame)
+
+        return self.eventObjectDetected.is_set()

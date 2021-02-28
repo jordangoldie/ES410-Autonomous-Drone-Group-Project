@@ -10,6 +10,7 @@ from GPS import get_vector, get_gps, distance_between
 import numpy as np
 from TCP import TCP
 
+
 # Drone class
 class Drone:
     def __init__(self, connection_str):
@@ -27,6 +28,8 @@ class Drone:
             self.eventFlyingAltReached = threading.Event()
             self.waypoint_count = 0
             self.origin = np.array
+            self.vision_tcp = None
+            self.detect = 0
 
         except dk.APIException:
             print("Timeout")
@@ -35,10 +38,10 @@ class Drone:
         """
         Arms vehicle and fly to target altitude.
         """
-        print("Basic pre-arm checks")
+        print('[INFO ARM + TAKEOFF] >> Basic pre-arm checks')
         # Don't try to arm until autopilot is ready
         while not self.vehicle.is_armable:
-            print(" Waiting for vehicle to initialise...")
+            print('[INFO ARM + TAKEOFF] >> Waiting for vehicle to initialise...')
             time.sleep(1)
 
         print("Arming motors")
@@ -48,10 +51,10 @@ class Drone:
 
         # Confirm vehicle armed before attempting to take off
         while not self.vehicle.armed:
-            print(" Waiting for arming...")
+            print('[INFO ARM + TAKEOFF] >> Waiting for arming...')
             time.sleep(1)
 
-        print("Taking off!")
+        print('[INFO ARM + TAKEOFF] >> Taking off!')
         self.vehicle.simple_takeoff(target_alt)  # Take off to target altitude
 
         # Wait until the vehicle reaches a safe height before processing the goto (otherwise the command
@@ -60,7 +63,7 @@ class Drone:
             print(" Altitude: ", self.vehicle.location.global_relative_frame.alt)
             # Break and return from function just below target altitude.
             if self.vehicle.location.global_relative_frame.alt >= target_alt * 0.97:
-                print("Reached target altitude")
+                print('[INFO ARM + TAKEOFF] >> Reached target altitude')
                 break
             time.sleep(1)
 
@@ -95,13 +98,13 @@ class Drone:
         self.eventTakeOffComplete.wait()
         self.eventFlyingAltReached.wait()
         self.vehicle.airspeed = airspeed
-        print("Flying towards point")
+        print('[INFO FLY] >> Flying towards point')
         self.vehicle.simple_goto(location)
         while True:
             lat = self.vehicle.location.global_relative_frame.lat
             long = self.vehicle.location.global_relative_frame.lon
             distance = distance_between(lat, long, location.lat, location.lon, self.origin)
-            print("distance to point:", distance)
+            print('[INFO FLY] >> distance to point:', distance)
             if distance <= 1:
                 self.eventLocationReached.set()
                 if plant_flag == 0:
@@ -119,33 +122,24 @@ class Drone:
         new_position = dk.LocationGlobalRelative(location.lat, location.lon, target_alt)
         self.vehicle.simple_goto(new_position)
         while True:
-            print(" Altitude: ", self.vehicle.location.global_relative_frame.alt)
+            print('[INFO DESCEND] >> Altitude: ', self.vehicle.location.global_relative_frame.alt)
             # Break and return from function just above planting altitude.
             if self.vehicle.location.global_relative_frame.alt <= target_alt * 1.03:
-                print("Reached planting altitude")
+                print('[INFO DESCEND] >> Reached planting altitude')
                 self.eventPlantAltReached.set()
                 self.eventFlyingAltReached.clear()
                 break
             time.sleep(1)
 
-    def scan(self, detection):
-        self.eventPlantAltReached.wait()
-        for i in range(5):
-            time.sleep(1)
-            print("scanning")
-        print("scan complete")
-
-        if detection == 1:
-            self.eventObjectDetected.set()
-
-        self.eventScanComplete.set()
-
     def set_plant_flag(self):
         self.eventScanComplete.wait()
-        for i in range(3):
-            print("planting")
-            time.sleep(1)
-        print("planting complete")
+        if self.eventObjectDetected.is_set():
+            print('[INFO PLANT] >> Planting aborted')
+        elif not self.eventObjectDetected.is_set():
+            for i in range(3):
+                print('[INFO PLANT] >> Dispensing')
+                time.sleep(1)
+            print('[INFO PLANT] >> Planting complete')
         self.eventPlantComplete.set()
 
     def ascend(self, target_alt):
@@ -157,7 +151,7 @@ class Drone:
             print(" Altitude: ", self.vehicle.location.global_relative_frame.alt)
             # Break and return from function just below flying altitude.
             if self.vehicle.location.global_relative_frame.alt >= target_alt * 0.97:
-                print("Reached planting altitude")
+                print('[INFO ASCEND] >> Reached planting altitude')
                 self.eventFlyingAltReached.set()
                 self.eventPlantAltReached.clear()
                 self.eventLocationReached.clear()
@@ -169,10 +163,11 @@ class Drone:
                 break
             time.sleep(1)
 
+    def return_home(self):
+        # self.eventMissionComplete.wait()
+        self.vehicle.mode = VehicleMode("RTL")
+
     def send_global_velocity(self, velocity_x, velocity_y, velocity_z, duration):
-        """
-        Move vehicle in direction based on specified velocity vectors.
-        """
         msg = self.vehicle.message_factory.set_position_target_global_int_encode(
             0,  # time_boot_ms (not used)
             0, 0,  # target system, target component
@@ -188,20 +183,21 @@ class Drone:
             0, 0, 0,  # afx, afy, afz acceleration (not supported yet, ignored in GCS_Mavlink)
             0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
 
-        # send command to vehicle on 1 Hz cycle
-        for x in range(0, duration):
-            self.vehicle.send_mavlink(msg)
-            time.sleep(1)
+        if duration == int:
+            # send command to vehicle on 1 Hz cycle
+            for x in range(0, duration):
+                self.vehicle.send_mavlink(msg)
+                time.sleep(1)
+        else:
+            for x in range(0, 1):
+                self.vehicle.send_mavlink(msg)
+                time.sleep(duration)
 
-    def return_home(self):
-        # self.eventMissionComplete.wait()
-        self.vehicle.mode = VehicleMode("RTL")
-
-    def get_positional_data(self, origin):
+    def get_positional_data(self):
         lat = self.get_current_location().lat
         lon = self.get_current_location().lon
         alt = self.get_current_location().alt
-        vector_fn = get_vector(origin, lat, lon)
+        vector_fn = get_vector(self.origin, lat, lon)
 
         roll = self.get_attitude().roll
         pitch = self.get_attitude().pitch
@@ -211,64 +207,123 @@ class Drone:
 
         return string
 
-    def get_circle_coords(self, lat, long, origin):
-        radius = 2
-        wp_pos = get_vector(origin, lat, long)
+    def circle_velocities(self, radius, duration):
+        coord_north = []
+        coord_east = []
 
-        circle_x = []
-        circle_y = []
-        circle_lats = []
-        circle_longs = []
-
-        for i in range(0, 360):
+        # create a set of 360 points east and north that describe a circle counter clockwise
+        for i in range(360):
             rad = math.radians(i)
-            circle_y.append(wp_pos[1] + radius * math.cos(rad))
-            circle_x.append(wp_pos[0] + radius * math.sin(rad))
-            circle_point = np.array([circle_x[i], circle_y[i], wp_pos[2], 1])
-            circle_point = np.transpose(circle_point)
-            lat, lon, long2 = get_gps(origin, circle_point)
-            circle_lats.append(lat)
-            circle_longs.append(long2)
+            coord_north.append(radius * math.sin(rad))
+            coord_east.append(radius * math.cos(rad))
 
-        return circle_x, circle_y
+        # get the vectors which joint these points, counter clockwise
+        vec_north = []
+        vec_east = []
+        for i in range(359):
+            vec_north.append(coord_north[i+1] - coord_north[i])
+            vec_east.append(coord_east[i+1] - coord_east[i])
 
-    def circle_velocities(self, circle_x, circle_y, duration):
-        vec_num = len(circle_x) - 1
-        step_time = duration/vec_num
+        # the time for each vector
+        time_per = duration / len(vec_north)
 
-        vec_x = []
-        vec_y = []
-        vel_x = []
-        vel_y = []
+        # define the velocities north and east, the vectors divided by the time per
+        vel_north = []
+        vel_east = []
 
-        for i in range(0, vec_num):
-            vec_x.append(circle_x[i+1] - circle_x[i])
-            vec_y.append(circle_y[i + 1] - circle_y[i])
-            vel_x.append(vec_x[i]/step_time)
-            vel_y.append(vec_y[i]/step_time)
+        for i in range(len(vec_north)):
+            vel_north.append(vec_north[i]/time_per)
+            vel_east.append(vec_east[i]/time_per)
 
-        return vel_x, vel_y
+        return vel_north, vel_east
 
-    def manual_circle(self, wp, origin, duration):
-        circle_x, circle_y = self.get_circle_coords(wp[0], wp[1], origin)
-        vel_x, vel_y = self.circle_velocities(circle_x, circle_y, 20)
-        step_time = duration / len(vel_x)
+    def set_roi(self, lat, lon, alt):
+        # create the MAV_CMD_DO_SET_ROI command
+        msg = self.vehicle.message_factory.command_long_encode(
+            0, 0,  # target system, target component
+            mavutil.mavlink.MAV_CMD_DO_SET_ROI,  # command
+            0,  # confirmation
+            0, 0, 0, 0,  # params 1-4
+            lat,
+            lon,
+            alt)
+        # send command to vehicle
+        self.vehicle.send_mavlink(msg)
 
-        '''first_point = self.get_plant_location(lats[0], longs[0], wp[2])
-        self.vehicle.simple_goto(first_point)
-        time.sleep(1)'''
+    def send_yaw(self, angle, speed, relative):
+        # create the CONDITION_YAW command using command_long_encode()
+        msg = self.vehicle.message_factory.command_long_encode(
+            0, 0,  # target system, target component
+            mavutil.mavlink.MAV_CMD_CONDITION_YAW,  # command
+            0,  # confirmation
+            angle,  # param 1, yaw in degrees
+            speed,  # param 2, yaw speed deg/s
+            -1,  # param 3, direction -1 ccw, 1 cw
+            relative,  # param 4, relative offset 1, absolute angle 0
+            0, 0, 0)  # param 5 ~ 7 not used
+        # send command to vehicle
+        self.vehicle.send_mavlink(msg)
 
-        for i in range(0, len(vel_x)):
-            self.send_global_velocity(vel_x[i], vel_y[i], 0, step_time)
+    def circle(self, duration, radius):
+        vel_north, vel_east = self.circle_velocities(radius, duration)  # get velocities
+        time_per = duration / len(vel_north)  # get time per
+
+        # move to outer edge of circle and yaw to centre
+        # self.send_yaw(270, 90, 0)
+        self.send_global_velocity(0, radius, 0, 2)
+        for i in range(len(vel_north)):
+            self.send_global_velocity(vel_north[i], vel_east[i], 0, time_per)
+
+    '''def scan(self, detection):
+        self.eventPlantAltReached.wait()
+        for i in range(5):
+            time.sleep(1)
+            print("scanning")
+        print("scan complete")
+
+        if detection == 1:
+            self.eventObjectDetected.set()
+
+        self.eventScanComplete.set()'''
+
+    def scan(self, location, duration, radius):
+        self.eventPlantAltReached.wait()
+        lat = location.lat
+        lon = location.lon
+        alt = location.alt
+        self.set_roi(lat, lon, alt)
+        print('[INFO SCAN] >> ROI set')
+        self.circle(duration, radius)
+        self.vehicle.simple_goto(self.get_plant_location(lat, lon, alt))
+        print('[INFO SCAN] >> scan complete')
+        self.eventScanComplete.set()
 
     def handle_unity(self):
-        tcp = TCP(5598)  # create instance of tcp class
+        tcp = TCP(5598, 'UNITY')  # create instance of tcp class
         tcp.bind_server_socket()
         tcp.listen_for_tcp()
 
         while True:
-            string = self.get_positional_data(self.origin)
+            string = self.get_positional_data()
             tcp.send_message(string)
-            # speedx = self.get_ground_speed()
-            # string = f'{speedx}, {speedy}, ...'
-            # tcp.send_message(string)
+
+    def handle_vision(self):
+        tcp = TCP(5311, 'VISION')
+        tcp.bind_server_socket()
+        tcp.listen_for_tcp()
+
+        while True:
+            msg = tcp.receive_message()
+            self.detect = int(msg)
+            if self.detect == 1:
+                print(self.detect)
+
+    def scan_output(self, duration):
+        self.eventPlantAltReached.wait()
+        t_end = time.time() + duration
+        while True:
+            if time.time() > t_end:
+                break
+            if self.detect == 1:
+                self.eventObjectDetected.set()
+

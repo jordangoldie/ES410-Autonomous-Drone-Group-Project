@@ -1,4 +1,4 @@
-from Drone import Drone                  # import Drone class from Drone.py
+from Drone2 import Drone                  # import Drone class from Drone.py
 from TCP import TCP
 from GPS import set_origin
 import time                              # import time library

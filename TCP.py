@@ -3,7 +3,7 @@ import socket
 
 # a class to contain all tcp related objects, both server and client sockets
 class TCP:
-    def __init__(self, port,  server_socket=None):
+    def __init__(self, port, name, server_socket=None):
 
         if server_socket is None:
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # creates a server socket object
@@ -13,6 +13,7 @@ class TCP:
         self.ip_address = socket.gethostbyname(socket.gethostname())
         self.server_address = (self.port, self.ip_address)
         self.client_socket = None
+        self.name = name
 
     def bind_server_socket(self):
         server_address = (self.ip_address, self.port)
@@ -21,9 +22,9 @@ class TCP:
 
     def listen_for_tcp(self):
         self.server_socket.listen(5)
-        print("[INFO] NOW LISTENING AT: ", self.server_address)
+        print(f'[INFO {self.name}] NOW LISTENING AT: ', self.server_address)
         self.client_socket, client_address = self.server_socket.accept()
-        print("[INFO] GOT CONNECTION FROM: ", client_address)
+        print(f'[INFO {self.name}] GOT CONNECTION FROM: ', client_address)
 
     def send_message(self, string):
         self.client_socket.send(bytes(string, "utf-8"))
