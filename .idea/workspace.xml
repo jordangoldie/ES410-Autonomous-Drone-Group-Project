@@ -19,25 +19,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b292f9d2-8325-4f56-a6e1-350e143b9f94" name="Default Changelist" comment="event based script and updated drone class, new event based testing scripts">
-      <change afterPath="$PROJECT_DIR$/test_scripts/GPSerrors.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Arduino.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Data_logging.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Drone.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Drone2.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Drone_event.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GPS.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/TCP.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/external_vision.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main2.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_event.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/sitl_visual.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_local_frames.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_scripts/test_script.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_scripts/test_script.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vision.py" beforeDir="false" />
-    </list>
+    <list default="true" id="b292f9d2-8325-4f56-a6e1-350e143b9f94" name="Default Changelist" comment="event based script and updated drone class, new event based testing scripts" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
