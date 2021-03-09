@@ -19,31 +19,25 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b292f9d2-8325-4f56-a6e1-350e143b9f94" name="Default Changelist" comment="event based script and updated drone class, new event based testing scripts">
-      <change afterPath="$PROJECT_DIR$/integration_tests/Drone_event_integration.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/integration_tests/GPS_integration.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/integration_tests/ascend_integration.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/integration_tests/descend_integration.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/integration_tests/fly_to_point_integration.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/integration_tests/plant_integration.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/integration_tests/return_home_integration.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/system_tests/Drone_event_system.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/system_tests/GPS_system.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/system_tests/main_event_system.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/unit_tests/Drone_event_unit.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/unit_tests/GPS_unit.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/unit_tests/arm_and_takeoff_unit.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/unit_tests/ascend_unit.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/unit_tests/descend_unit.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/unit_tests/fly_to_point_unit.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/unit_tests/plant_unit.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/unit_tests/return_home_unit.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Data_logging.py" beforeDir="false" afterPath="$PROJECT_DIR$/Data_logging.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Drone_event.py" beforeDir="false" afterPath="$PROJECT_DIR$/Drone_event.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/datafile_28-02-21_16-43-15.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_event.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_event.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_altitude.py" beforeDir="false" />
+    <list default="true" id="b292f9d2-8325-4f56-a6e1-350e143b9f94" name="Default Changelist" comment="unit, integration and system test scripts in organised folders">
+      <change beforePath="$PROJECT_DIR$/integration_tests/Drone_event_integration.py" beforeDir="false" afterPath="$PROJECT_DIR$/test scripts/integration_tests/Drone_event_integration.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/integration_tests/GPS_integration.py" beforeDir="false" afterPath="$PROJECT_DIR$/test scripts/integration_tests/GPS_integration.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/integration_tests/ascend_integration.py" beforeDir="false" afterPath="$PROJECT_DIR$/test scripts/integration_tests/ascend_integration.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/integration_tests/descend_integration.py" beforeDir="false" afterPath="$PROJECT_DIR$/test scripts/integration_tests/descend_integration.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/integration_tests/fly_to_point_integration.py" beforeDir="false" afterPath="$PROJECT_DIR$/test scripts/integration_tests/fly_to_point_integration.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/integration_tests/plant_integration.py" beforeDir="false" afterPath="$PROJECT_DIR$/test scripts/integration_tests/plant_integration.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/integration_tests/return_home_integration.py" beforeDir="false" afterPath="$PROJECT_DIR$/test scripts/integration_tests/return_home_integration.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/system_tests/Drone_event_system.py" beforeDir="false" afterPath="$PROJECT_DIR$/test scripts/system_tests/Drone_event_system.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/system_tests/GPS_system.py" beforeDir="false" afterPath="$PROJECT_DIR$/test scripts/system_tests/GPS_system.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/system_tests/main_event_system.py" beforeDir="false" afterPath="$PROJECT_DIR$/test scripts/system_tests/main_event_system.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/unit_tests/Drone_event_unit.py" beforeDir="false" afterPath="$PROJECT_DIR$/test scripts/unit_tests/Drone_event_unit.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/unit_tests/GPS_unit.py" beforeDir="false" afterPath="$PROJECT_DIR$/test scripts/unit_tests/GPS_unit.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/unit_tests/arm_and_takeoff_unit.py" beforeDir="false" afterPath="$PROJECT_DIR$/test scripts/unit_tests/arm_and_takeoff_unit.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/unit_tests/ascend_unit.py" beforeDir="false" afterPath="$PROJECT_DIR$/test scripts/unit_tests/ascend_unit.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/unit_tests/descend_unit.py" beforeDir="false" afterPath="$PROJECT_DIR$/test scripts/unit_tests/descend_unit.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/unit_tests/fly_to_point_unit.py" beforeDir="false" afterPath="$PROJECT_DIR$/test scripts/unit_tests/fly_to_point_unit.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/unit_tests/plant_unit.py" beforeDir="false" afterPath="$PROJECT_DIR$/test scripts/unit_tests/plant_unit.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/unit_tests/return_home_unit.py" beforeDir="false" afterPath="$PROJECT_DIR$/test scripts/unit_tests/return_home_unit.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -251,7 +245,14 @@
       <option name="project" value="LOCAL" />
       <updated>1614548314799</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="unit, integration and system test scripts in organised folders">
+      <created>1615286838403</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1615286838403</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="UnknownFeatures">
@@ -275,7 +276,8 @@
     <MESSAGE value="workspace" />
     <MESSAGE value="event based script and updated drone class, new event based testing scripts" />
     <MESSAGE value="testing altitude script added" />
-    <option name="LAST_COMMIT_MESSAGE" value="testing altitude script added" />
+    <MESSAGE value="unit, integration and system test scripts in organised folders" />
+    <option name="LAST_COMMIT_MESSAGE" value="unit, integration and system test scripts in organised folders" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
