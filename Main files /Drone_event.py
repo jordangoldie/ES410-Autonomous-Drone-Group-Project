@@ -1,10 +1,11 @@
-import dronekit as dk                # import drone kit library
-from dronekit import connect         # import connect method from drone kit
-from dronekit import VehicleMode     # import VehicleMode object from drone kit
+# import statements
+import dronekit as dk                
+from dronekit import connect         
+from dronekit import VehicleMode     
 from pymavlink import mavutil
 import serial
-import time                          # import time library
-import math                          # import math library
+import time                          
+import math                          
 import threading
 from GPS import get_vector, get_gps, distance_between, set_origin
 import numpy as np
@@ -13,10 +14,13 @@ from TCP import TcpServer
 
 # Drone class
 class Drone:
+    # initialisation of relevant objects and variables
     def __init__(self, connection_str):
         try:
-            self.vehicle = connect(connection_str)
-            self.event_flag = 0
+            # connect to SITL vehicle
+            self.vehicle = connect(connection_str)                   
+            
+            # create events corresponding to drone control actions
             self.eventThreadSeqActive = threading.Event()
             self.eventMissionComplete = threading.Event()
             self.eventTakeOffComplete = threading.Event()
@@ -26,30 +30,31 @@ class Drone:
             self.eventObjectDetected = threading.Event()
             self.eventPlantComplete = threading.Event()
             self.eventFlyingAltReached = threading.Event()
-            self.waypoint_count = 0
-            self.origin = set_origin(52.38255, -1.56156)
-            self.vision_tcp = None
-            self.detect = 0
-            self.eventSendScanIndicator = threading.Event()
-            self.eventCircleStarted = threading.Event()
-
+            self.eventSendScanIndicator = threading.Event()           
+            self.eventCircleStarted = threading.Event()          
+            
+            self.waypoint_count = 0                          # create waypoint counter     
+            self.origin = set_origin(52.38255, -1.56156)     # set drone's origin
+            self.vision_tcp = None                           # 
+            self.detect = 0                                  # create person detection variable
+            
+        # print timeout if connection failure
         except dk.APIException:
             print("Timeout")
 
+    # arm drone and take off to target altitude
     def arm_and_takeoff(self, target_alt):
-        """
-        Arms vehicle and fly to target altitude.
-        """
-        print('[INFO ARM] >> Basic pre-arm checks')
-        # Don't try to arm until autopilot is ready
+        
+        print('[INFO ARM] >> Basic pre-arm checks')                         
+        
+        # block arm attempt until autopilot is ready
         while not self.vehicle.is_armable:
-            print('[INFO ARM] >> Waiting for vehicle to initialise...')
+            print('[INFO ARM] >> Waiting for vehicle to initialise...')     
             time.sleep(1)
 
         print('[INFO ARM] >> Arming motors')
-        # Copter should arm in GUIDED mode
-        self.vehicle.mode = VehicleMode("GUIDED")
-        self.vehicle.armed = True
+        self.vehicle.mode = VehicleMode("GUIDED")     # set flight mode to guided     
+        self.vehicle.armed = True                     # arm drone
 
         # Confirm vehicle armed before attempting to take off
         while not self.vehicle.armed:
@@ -57,105 +62,133 @@ class Drone:
             time.sleep(1)
 
         print('[INFO TAKEOFF] >> Taking off!')
-        self.vehicle.simple_takeoff(target_alt)  # Take off to target altitude
+        self.vehicle.simple_takeoff(target_alt)     # Take off to target altitude
 
-        # Wait until the vehicle reaches a safe height before processing the goto (otherwise the command
-        #  after Vehicle.simple_takeoff will execute immediately).
+        # Wait until the drone gets within range of target altitude before next drone control command is executed
         while True:
-            print("[TAKEOFF] >> Altitude: ", self.vehicle.location.global_relative_frame.alt)
-            # Break and return from function just below target altitude.
-            if self.vehicle.location.global_relative_frame.alt >= target_alt * 0.97:
+            print("[TAKEOFF] >> Altitude: ", self.vehicle.location.global_relative_frame.alt)          
+            if self.vehicle.location.global_relative_frame.alt >= target_alt * 0.98:              # Break from function if within 2 % of target altitude.
                 print('[INFO TAKEOFF] >> Reached target altitude')
                 break
             time.sleep(1)
+       
+        self.eventTakeOffComplete.set()      # take off complete flag
+        self.eventFlyingAltReached.set()     # set flying altitude reached flag
 
-        self.eventTakeOffComplete.set()
-        self.eventFlyingAltReached.set()
-
+    # return drone current location
     def get_current_location(self):
         current_location = self.vehicle.location.global_relative_frame
         return current_location
-
+    
+    # return drone velocity
     def get_velocity(self):
         velocity = self.vehicle.velocity
         return velocity
-
+    
+    # return drone airspeed
     def get_airspeed(self):
         airspeed = self.vehicle.airspeed
         return airspeed
 
+    # return drone groundspeed
     def get_ground_speed(self):
         ground_speed = self.vehicle.groundspeed
         return ground_speed
 
+    # return drone atttide
     def get_attitude(self):
         attitude = self.vehicle.attitude
         return attitude
 
+    # convert latitude, longitude and altitude into location object
     def get_plant_location(self, lat, lon, alt):
         plant_location = dk.LocationGlobalRelative(lat, lon, alt)
         return plant_location
 
-    def fly_to_point(self, location, airspeed, plant_flag):
+    # command drone to fly to given location given airspeed, plant flag to specify whether location requires planting
+    def fly_to_point(self, location, airspeed, plant_flag): 
+        
+        # block fly to point command until take off is complete and flying altitude is reached
         self.eventTakeOffComplete.wait()
         self.eventFlyingAltReached.wait()
-        self.vehicle.airspeed = airspeed
-        print('[INFO FLY] >> Flying towards point')
-        self.vehicle.simple_goto(location)
+       
+        self.vehicle.airspeed = airspeed                # set drone airspeed
+        self.vehicle.simple_goto(location)              # command drone to fly to target location
+        print('[INFO FLY] >> Flying towards point')     
+        
+        # Wait until drone gets within range of target location before next drone control command is executed
         while True:
-            lat = self.vehicle.location.global_relative_frame.lat
-            long = self.vehicle.location.global_relative_frame.lon
-            distance = distance_between(lat, long, location.lat, location.lon, self.origin)
+            lat = self.vehicle.location.global_relative_frame.lat                               # return current drone latitude
+            long = self.vehicle.location.global_relative_frame.lon                              # return current drone longitude
+            distance = distance_between(lat, long, location.lat, location.lon, self.origin)     # return distance between drone position and target location
             print('[INFO FLY] >> distance to point:', distance)
-            if distance <= 1:
-                self.eventLocationReached.set()
-                if plant_flag == 0:
-                    self.eventLocationReached.clear()
-                    self.eventThreadSeqActive.clear()
+            
+            if distance <= 1:                             # break from function if within 1 m of target location                                      
+                if plant_flag == 1:                       # if planting location set location reached flag
+                    self.eventLocationReached.set()                                                
+                if plant_flag == 0:                       # if not planting location reset thread sequence active flag                 
+                    self.eventThreadSeqActive.clear()     
                 break
 
-            time.sleep(3)
-
+            time.sleep(3)     # pause between distance checks
+            
         return print("location reached")
 
+    # command drone to descend to target altitude
     def descend(self, target_alt):
-        self.eventLocationReached.wait()
-        location = self.get_current_location()
-        new_position = dk.LocationGlobalRelative(location.lat, location.lon, target_alt)
-        self.vehicle.simple_goto(new_position)
+        
+        self.eventLocationReached.wait()     # block descend command until target location reached
+        
+        location = self.get_current_location()                                               # return drone current location 
+        new_position = dk.LocationGlobalRelative(location.lat, location.lon, target_alt)     # define new target location with same altitude
+        self.vehicle.simple_goto(new_position)                                               # command drone to travel to new location
+        
+        # wait until drone has descended to within range of target altitude before next command is executed
         while True:
-            print('[INFO DESCEND] >> Altitude: ', self.vehicle.location.global_relative_frame.alt)
+            print('[INFO DESCEND] >> Altitude: ', self.vehicle.location.global_relative_frame.alt)       
+            
             # Break and return from function just above planting altitude.
-            if self.vehicle.location.global_relative_frame.alt <= target_alt * 1.03:
+            if self.vehicle.location.global_relative_frame.alt <= target_alt * 1.01:     # break from function if within 1 % of target altitude
                 print('[INFO DESCEND] >> Reached planting altitude')
-                self.eventPlantAltReached.set()
-                self.eventFlyingAltReached.clear()
+                self.eventPlantAltReached.set()                                          # set planting altitude reached flag
+                self.eventFlyingAltReached.clear()                                       # reset flying altitude reached flag
                 break
-            time.sleep(1)
+                
+            time.sleep(1)     # pause between altitude checks
 
-    def set_plant_flag(self):
-        self.eventScanComplete.wait()
+    def plant(self):
+        
+        self.eventScanComplete.wait()     # block planting until scan is complete
+        
+        # if object (person) detected abort planting, otherwise plant 
         if self.eventObjectDetected.is_set():
             print('[INFO PLANT] >> Planting aborted')
-            print(f'[DEBUG PLANT] {self.eventObjectDetected.is_set()}')
+            print(f'[DEBUG PLANT] {self.eventObjectDetected.is_set()}')     #
         else:
             for i in range(3):
                 print('[INFO PLANT] >> Dispensing')
                 print(f'[DEBUG PLANT] {self.eventObjectDetected.is_set()}')
                 time.sleep(1)
             print('[INFO PLANT] >> Planting complete')
-        self.eventPlantComplete.set()
+            
+        self.eventPlantComplete.set()     # set plant complete flag
 
+    # command drone to ascend to target altitude    
     def ascend(self, target_alt):
-        self.eventPlantComplete.wait()
-        location = self.get_current_location()
-        new_position = dk.LocationGlobalRelative(location.lat, location.lon, target_alt)
-        self.vehicle.simple_goto(new_position)
+        
+        self.eventPlantComplete.wait()     # block ascend command until planting is complete
+        
+        location = self.get_current_location()                                               # return drone current location 
+        new_position = dk.LocationGlobalRelative(location.lat, location.lon, target_alt)     # define new target location with same altitude
+        self.vehicle.simple_goto(new_position)                                               # command drone to travel to new location
+        
+        # wait until drone has ascended to within range of target altitude before next command is executed 
         while True:
             print(" Altitude: ", self.vehicle.location.global_relative_frame.alt)
-            # Break and return from function just below flying altitude.
-            if self.vehicle.location.global_relative_frame.alt >= target_alt * 0.97:
+            if self.vehicle.location.global_relative_frame.alt >= target_alt * 0.98:     # break from function if within 2 % of target altitude
                 print('[INFO ASCEND] >> Reached planting altitude')
+                
+                # reset event flag configuration
                 self.eventFlyingAltReached.set()
                 self.eventPlantAltReached.clear()
                 self.eventLocationReached.clear()
@@ -166,7 +199,8 @@ class Drone:
                 self.eventObjectDetected.clear()
                 self.waypoint_count += 1
                 break
-            time.sleep(1)
+                
+            time.sleep(1)     # pause between altitude checks
 
     def return_home(self):
         # self.eventMissionComplete.wait()
