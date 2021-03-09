@@ -20,11 +20,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b292f9d2-8325-4f56-a6e1-350e143b9f94" name="Default Changelist" comment="event based script and updated drone class, new event based testing scripts">
+      <change afterPath="$PROJECT_DIR$/test_scripts/GPSerrors.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Drone2.py" beforeDir="false" afterPath="$PROJECT_DIR$/Drone2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Drone_event.py" beforeDir="false" afterPath="$PROJECT_DIR$/Drone_event.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_event.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_event.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sitl_visual.py" beforeDir="false" afterPath="$PROJECT_DIR$/sitl_visual.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Arduino.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Data_logging.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Drone.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Drone2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Drone_event.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/GPS.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/TCP.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/external_vision.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/main2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_event.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/sitl_visual.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_local_frames.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_scripts/test_script.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_scripts/test_script.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vision.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,15 +73,18 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/old" />
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.Drone2">
+  <component name="RunManager" selected="Python.GPSerrors">
     <configuration name="Drone2" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="ES410-Autonomous-Drone-Group-Project" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -83,6 +98,27 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Drone2.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="GPSerrors" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="ES410-Autonomous-Drone-Group-Project" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test_scripts" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_scripts/GPSerrors.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -120,11 +156,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test scripts" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test_scripts" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test scripts/test_local_frames.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_local_frames.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -133,7 +169,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="test_local_frames" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="test_script (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="ES410-Autonomous-Drone-Group-Project" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -145,7 +181,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_local_frames.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test_scripts/test_script.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -177,10 +213,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.GPSerrors" />
+        <item itemvalue="Python.test_script (1)" />
         <item itemvalue="Python.Drone2" />
         <item itemvalue="Python.test_script" />
         <item itemvalue="Python.main" />
-        <item itemvalue="Python.test_local_frames" />
       </list>
     </recent_temporary>
   </component>
@@ -261,60 +298,98 @@
     <option name="LAST_COMMIT_MESSAGE" value="event based script and updated drone class, new event based testing scripts" />
   </component>
   <component name="WindowStateProjectService">
-    <state width="1899" height="190" key="GridCell.Tab.0.bottom" timestamp="1614532761495">
+    <state x="820" y="300" key="#xdebugger.XInspectDialog" timestamp="1615065915418">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1899" height="190" key="GridCell.Tab.0.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1614532761495" />
+    <state x="820" y="300" key="#xdebugger.XInspectDialog/0.0.1920.1080@0.0.1920.1080" timestamp="1615065915418" />
+    <state width="1440" height="438" key="DebuggerActiveHint" timestamp="1615140372965">
+      <screen x="0" y="0" width="1440" height="900" />
+    </state>
+    <state width="1440" height="438" key="DebuggerActiveHint/0.0.1440.900@0.0.1440.900" timestamp="1615140372965" />
+    <state width="1419" height="108" key="GridCell.Tab.0.bottom" timestamp="1615199465315">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="1419" height="108" key="GridCell.Tab.0.bottom/0.0.1440.900@0.0.1440.900" timestamp="1615141906678" />
+    <state width="1419" height="108" key="GridCell.Tab.0.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1615199465315" />
     <state width="1899" height="180" key="GridCell.Tab.0.bottom/0.23.1920.1057@0.23.1920.1057" timestamp="1614120793683" />
-    <state width="1899" height="190" key="GridCell.Tab.0.center" timestamp="1614532761494">
+    <state width="1419" height="108" key="GridCell.Tab.0.center" timestamp="1615199465314">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1899" height="190" key="GridCell.Tab.0.center/0.0.1920.1080@0.0.1920.1080" timestamp="1614532761494" />
+    <state width="1419" height="108" key="GridCell.Tab.0.center/0.0.1440.900@0.0.1440.900" timestamp="1615141906676" />
+    <state width="1419" height="108" key="GridCell.Tab.0.center/0.0.1920.1080@0.0.1920.1080" timestamp="1615199465314" />
     <state width="1899" height="180" key="GridCell.Tab.0.center/0.23.1920.1057@0.23.1920.1057" timestamp="1614120793682" />
-    <state width="1899" height="190" key="GridCell.Tab.0.left" timestamp="1614532761493">
+    <state width="1419" height="108" key="GridCell.Tab.0.left" timestamp="1615199465313">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1899" height="190" key="GridCell.Tab.0.left/0.0.1920.1080@0.0.1920.1080" timestamp="1614532761493" />
+    <state width="1419" height="108" key="GridCell.Tab.0.left/0.0.1440.900@0.0.1440.900" timestamp="1615141906676" />
+    <state width="1419" height="108" key="GridCell.Tab.0.left/0.0.1920.1080@0.0.1920.1080" timestamp="1615199465313" />
     <state width="1899" height="180" key="GridCell.Tab.0.left/0.23.1920.1057@0.23.1920.1057" timestamp="1614120793681" />
-    <state width="1899" height="190" key="GridCell.Tab.0.right" timestamp="1614532761495">
+    <state width="1419" height="108" key="GridCell.Tab.0.right" timestamp="1615199465315">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1899" height="190" key="GridCell.Tab.0.right/0.0.1920.1080@0.0.1920.1080" timestamp="1614532761495" />
+    <state width="1419" height="108" key="GridCell.Tab.0.right/0.0.1440.900@0.0.1440.900" timestamp="1615141906677" />
+    <state width="1419" height="108" key="GridCell.Tab.0.right/0.0.1920.1080@0.0.1920.1080" timestamp="1615199465315" />
     <state width="1899" height="180" key="GridCell.Tab.0.right/0.23.1920.1057@0.23.1920.1057" timestamp="1614120793682" />
-    <state width="1899" height="321" key="GridCell.Tab.1.bottom" timestamp="1614242364963">
+    <state width="1419" height="108" key="GridCell.Tab.1.bottom" timestamp="1615199465317">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1899" height="321" key="GridCell.Tab.1.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1614242364963" />
+    <state width="1419" height="108" key="GridCell.Tab.1.bottom/0.0.1440.900@0.0.1440.900" timestamp="1615141906681" />
+    <state width="1419" height="108" key="GridCell.Tab.1.bottom/0.0.1920.1080@0.0.1920.1080" timestamp="1615199465317" />
     <state width="1899" height="180" key="GridCell.Tab.1.bottom/0.23.1920.1057@0.23.1920.1057" timestamp="1614120793685" />
-    <state width="1899" height="321" key="GridCell.Tab.1.center" timestamp="1614242364963">
+    <state width="1419" height="108" key="GridCell.Tab.1.center" timestamp="1615199465316">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1899" height="321" key="GridCell.Tab.1.center/0.0.1920.1080@0.0.1920.1080" timestamp="1614242364963" />
+    <state width="1419" height="108" key="GridCell.Tab.1.center/0.0.1440.900@0.0.1440.900" timestamp="1615141906680" />
+    <state width="1419" height="108" key="GridCell.Tab.1.center/0.0.1920.1080@0.0.1920.1080" timestamp="1615199465316" />
     <state width="1899" height="180" key="GridCell.Tab.1.center/0.23.1920.1057@0.23.1920.1057" timestamp="1614120793684" />
-    <state width="1899" height="321" key="GridCell.Tab.1.left" timestamp="1614242364962">
+    <state width="1419" height="108" key="GridCell.Tab.1.left" timestamp="1615199465316">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1899" height="321" key="GridCell.Tab.1.left/0.0.1920.1080@0.0.1920.1080" timestamp="1614242364962" />
+    <state width="1419" height="108" key="GridCell.Tab.1.left/0.0.1440.900@0.0.1440.900" timestamp="1615141906679" />
+    <state width="1419" height="108" key="GridCell.Tab.1.left/0.0.1920.1080@0.0.1920.1080" timestamp="1615199465316" />
     <state width="1899" height="180" key="GridCell.Tab.1.left/0.23.1920.1057@0.23.1920.1057" timestamp="1614120793684" />
-    <state width="1899" height="321" key="GridCell.Tab.1.right" timestamp="1614242364963">
+    <state width="1419" height="108" key="GridCell.Tab.1.right" timestamp="1615199465316">
       <screen x="0" y="0" width="1920" height="1080" />
     </state>
-    <state width="1899" height="321" key="GridCell.Tab.1.right/0.0.1920.1080@0.0.1920.1080" timestamp="1614242364963" />
+    <state width="1419" height="108" key="GridCell.Tab.1.right/0.0.1440.900@0.0.1440.900" timestamp="1615141906680" />
+    <state width="1419" height="108" key="GridCell.Tab.1.right/0.0.1920.1080@0.0.1920.1080" timestamp="1615199465316" />
     <state width="1899" height="180" key="GridCell.Tab.1.right/0.23.1920.1057@0.23.1920.1057" timestamp="1614120793685" />
-    <state x="1909" y="47" key="SettingsEditor" timestamp="1614382684924">
-      <screen x="1440" y="-132" width="1920" height="1080" />
+    <state x="469" y="179" key="SettingsEditor" timestamp="1614955821477">
+      <screen x="0" y="0" width="1920" height="1080" />
     </state>
     <state x="1909" y="47" key="SettingsEditor/0.0.1440.900/1440.-132.1920.1080@1440.-132.1920.1080" timestamp="1614382684924" />
+    <state x="469" y="179" key="SettingsEditor/0.0.1920.1080@0.0.1920.1080" timestamp="1614955821477" />
+    <state width="526" height="540" key="XDebugger.FullValuePopup" timestamp="1614879964591">
+      <screen x="0" y="0" width="1920" height="1080" />
+    </state>
+    <state width="394" height="450" key="XDebugger.FullValuePopup/0.0.1440.900@0.0.1440.900" timestamp="1614802283140" />
+    <state width="526" height="540" key="XDebugger.FullValuePopup/0.0.1920.1080@0.0.1920.1080" timestamp="1614879964591" />
+    <state x="100" y="100" width="1720" height="880" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1615064694003">
+      <screen x="0" y="23" width="1920" height="1057" />
+    </state>
+    <state x="100" y="100" width="1720" height="880" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.23.1920.1057@0.23.1920.1057" timestamp="1615064694003" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/test_scripts/test_script.py</url>
-          <line>14</line>
-          <option name="timeStamp" value="3" />
+          <line>21</line>
+          <option name="timeStamp" value="6" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/test_scripts/GPSerrors.py</url>
+          <line>41</line>
+          <option name="timeStamp" value="14" />
         </line-breakpoint>
       </breakpoints>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
     </breakpoint-manager>
   </component>
 </project>

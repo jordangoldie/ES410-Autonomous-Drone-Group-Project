@@ -6,9 +6,9 @@ import serial
 import time                          # import time library
 import math                          # import math library
 import threading
-from GPS import get_vector, get_gps, distance_between
+from GPS import get_vector, get_gps, distance_between, set_origin
 import numpy as np
-from TCP import TCP
+from TCP import TcpServer
 
 
 # Drone class
@@ -27,9 +27,11 @@ class Drone:
             self.eventPlantComplete = threading.Event()
             self.eventFlyingAltReached = threading.Event()
             self.waypoint_count = 0
-            self.origin = np.array
+            self.origin = set_origin(52.38255, -1.56156)
             self.vision_tcp = None
             self.detect = 0
+            self.eventSendScanIndicator = threading.Event()
+            self.eventCircleStarted = threading.Event()
 
         except dk.APIException:
             print("Timeout")
@@ -38,32 +40,32 @@ class Drone:
         """
         Arms vehicle and fly to target altitude.
         """
-        print('[INFO ARM + TAKEOFF] >> Basic pre-arm checks')
+        print('[INFO ARM] >> Basic pre-arm checks')
         # Don't try to arm until autopilot is ready
         while not self.vehicle.is_armable:
-            print('[INFO ARM + TAKEOFF] >> Waiting for vehicle to initialise...')
+            print('[INFO ARM] >> Waiting for vehicle to initialise...')
             time.sleep(1)
 
-        print("Arming motors")
+        print('[INFO ARM] >> Arming motors')
         # Copter should arm in GUIDED mode
         self.vehicle.mode = VehicleMode("GUIDED")
         self.vehicle.armed = True
 
         # Confirm vehicle armed before attempting to take off
         while not self.vehicle.armed:
-            print('[INFO ARM + TAKEOFF] >> Waiting for arming...')
+            print('[INFO ARM] >> Waiting for arming...')
             time.sleep(1)
 
-        print('[INFO ARM + TAKEOFF] >> Taking off!')
+        print('[INFO TAKEOFF] >> Taking off!')
         self.vehicle.simple_takeoff(target_alt)  # Take off to target altitude
 
         # Wait until the vehicle reaches a safe height before processing the goto (otherwise the command
         #  after Vehicle.simple_takeoff will execute immediately).
         while True:
-            print(" Altitude: ", self.vehicle.location.global_relative_frame.alt)
+            print("[TAKEOFF] >> Altitude: ", self.vehicle.location.global_relative_frame.alt)
             # Break and return from function just below target altitude.
             if self.vehicle.location.global_relative_frame.alt >= target_alt * 0.97:
-                print('[INFO ARM + TAKEOFF] >> Reached target altitude')
+                print('[INFO TAKEOFF] >> Reached target altitude')
                 break
             time.sleep(1)
 
@@ -135,9 +137,11 @@ class Drone:
         self.eventScanComplete.wait()
         if self.eventObjectDetected.is_set():
             print('[INFO PLANT] >> Planting aborted')
-        elif not self.eventObjectDetected.is_set():
+            print(f'[DEBUG PLANT] {self.eventObjectDetected.is_set()}')
+        else:
             for i in range(3):
                 print('[INFO PLANT] >> Dispensing')
+                print(f'[DEBUG PLANT] {self.eventObjectDetected.is_set()}')
                 time.sleep(1)
             print('[INFO PLANT] >> Planting complete')
         self.eventPlantComplete.set()
@@ -159,6 +163,7 @@ class Drone:
                 self.eventScanComplete.clear()
                 self.eventPlantComplete.clear()
                 self.eventThreadSeqActive.clear()
+                self.eventObjectDetected.clear()
                 self.waypoint_count += 1
                 break
             time.sleep(1)
@@ -203,7 +208,12 @@ class Drone:
         pitch = self.get_attitude().pitch
         yaw = self.get_attitude().yaw
 
-        string = f'{vector_fn[0]},{vector_fn[1]},{alt},{roll},{pitch},{yaw}'
+        if self.eventSendScanIndicator.is_set():
+            scan = 1
+        else:
+            scan = 0
+
+        string = f'{vector_fn[0]},{vector_fn[1]},{alt},{roll},{pitch},{yaw}, {scan}'
 
         return string
 
@@ -274,18 +284,6 @@ class Drone:
         for i in range(len(vel_north)):
             self.send_global_velocity(vel_north[i], vel_east[i], 0, time_per)
 
-    '''def scan(self, detection):
-        self.eventPlantAltReached.wait()
-        for i in range(5):
-            time.sleep(1)
-            print("scanning")
-        print("scan complete")
-
-        if detection == 1:
-            self.eventObjectDetected.set()
-
-        self.eventScanComplete.set()'''
-
     def scan(self, location, duration, radius):
         self.eventPlantAltReached.wait()
         lat = location.lat
@@ -294,12 +292,13 @@ class Drone:
         self.set_roi(lat, lon, alt)
         print('[INFO SCAN] >> ROI set')
         self.circle(duration, radius)
-        self.vehicle.simple_goto(self.get_plant_location(lat, lon, alt))
+        self.vehicle.simple_goto(location)
+        time.sleep(3)
         print('[INFO SCAN] >> scan complete')
         self.eventScanComplete.set()
 
     def handle_unity(self):
-        tcp = TCP(5598, 'UNITY')  # create instance of tcp class
+        tcp = TcpServer(5598, 'UNITY')  # create instance of tcp class
         tcp.bind_server_socket()
         tcp.listen_for_tcp()
 
@@ -308,22 +307,30 @@ class Drone:
             tcp.send_message(string)
 
     def handle_vision(self):
-        tcp = TCP(5311, 'VISION')
+        tcp = TcpServer(5311, 'VISION')
         tcp.bind_server_socket()
         tcp.listen_for_tcp()
 
         while True:
             msg = tcp.receive_message()
             self.detect = int(msg)
-            if self.detect == 1:
-                print(self.detect)
+            print(self.detect)
 
     def scan_output(self, duration):
         self.eventPlantAltReached.wait()
+        self.eventSendScanIndicator.set()
+        print(f'[DEBUG scan output] Scan indicator: {self.eventSendScanIndicator.is_set()}')
         t_end = time.time() + duration
         while True:
-            if time.time() > t_end:
-                break
+
             if self.detect == 1:
                 self.eventObjectDetected.set()
+                print(f'[DEBUG scan output] {self.eventObjectDetected.is_set()}')
+                print('[DEBUG] event object detected set')
+
+            if time.time() > t_end:
+                print('[DEBUG scan output] duration done break loop ')
+                self.eventSendScanIndicator.clear()
+                print(f'[DEBUG scan output] Scan indicator: {self.eventSendScanIndicator.is_set()}')
+                break
 

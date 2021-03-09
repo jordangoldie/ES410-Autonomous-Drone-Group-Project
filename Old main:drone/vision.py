@@ -2,19 +2,20 @@ import socket, sys, cv2, pickle, struct, zlib, imutils
 from PIL import Image
 from io import BytesIO
 import numpy as np
-from TCP import TCP
+from TCP import TcpServer
 import threading
 import time
 
 
+# class for handling
 class DroneCamVision:
 
     def __init__(self, port):
-        self.tcp = TCP(port, 'VISION CLASS')
-        self.tcp.bind_server_socket()
-        self.tcp.listen_for_tcp()
-        self.net = None
-        self.classes = []
+        self.tcp = TcpServer(port, 'VISION CLASS')  # create TCP server socket
+        self.tcp.bind_server_socket()  # bind server socket to port/IP
+        self.tcp.listen_for_tcp() # listen for connections and return client object
+        self.net = None  # neural network variable to be set
+        self.classes = []  # holds identifiable object classes
         self.colours = []
         self.scan_output = 0
         self.eventObjectDetected = threading.Event()
@@ -38,18 +39,18 @@ class DroneCamVision:
         self.net = cv2.dnn.readNetFromCaffe(prototxt, model)
 
     def run_detection(self, duration):
-        self.tcp.send_message('1')
-        data = b""
-        payload_size = struct.calcsize(">L")
+        self.tcp.send_message('1') # send a 1 to unity to trigger stream of images
+        data = b"" # set data type to bytes
+        payload_size = struct.calcsize(">L")  # set payload (buffer) size to 4
 
-        t_end = time.time() + duration
+        t_end = time.time() + duration  # create time condition for break
 
         while True:
 
-            if time.time() > t_end:
+            if time.time() > t_end:  # if duration exceeded, break
                 # cv2.destroyAllWindows()
-                self.tcp.send_message('0')
-                if self.eventObjectDetected.is_set():
+                self.tcp.send_message('0')  # send zero to unity to stop stream of images
+                if self.eventObjectDetected.is_set():  # check vision output
                     print('[INFO VISION] Person detected')
                 else:
                     print('[INFO VISION] Region safe to plant')
@@ -64,25 +65,25 @@ class DroneCamVision:
                 # print("Recv: {}".format(len(data)))  # prints data length, at this point 0
                 data += self.tcp.client_socket.recv(4096)  # receives 4096 bytes, > than 4 therefore loop breaks
 
-            # print("Done Recv: {}".format(len(data)))  # prints new data length, should be 4096
+            print("Done Recv: {}".format(len(data)))  # prints new data length, should be 4096
             packed_msg_size = data[:payload_size]  # gets first four bytes of data as this is the length
             data = data[payload_size:]  # takes the first four bytes (protocol) out of the data
             msg_size = struct.unpack(">L", packed_msg_size)[0]  # unpacks the 4 bytes to get message size
-            # print("packed_msg_size: {}".format(packed_msg_size))  # prints the packed message size
-            # print("msg_size: {}".format(msg_size))  # prints the message size
+            print("packed_msg_size: {}".format(packed_msg_size))  # prints the packed message size
+            print("msg_size: {}".format(msg_size))  # prints the message size
 
             while len(data) < msg_size:  # runs loop until data size is greater than or equal to the msg size
                 data += self.tcp.client_socket.recv(4096)
             frame_data = data[:msg_size]  # takes the bytes up to the size of the msg, leaving any excess
             data = data[msg_size:]  # assigns the excess to data as it is the beginning of the next msg
-            # print("Frame data length: {}".format(len(frame_data)))
-            # print(frame_data)
+            print("Frame data length: {}".format(len(frame_data)))
+            print(frame_data)
 
-            stream = BytesIO(frame_data)
+            stream = BytesIO(frame_data) # creates BytesIO object
             image = Image.open(stream).convert("RGB")  # changed from RGBA
             stream.close()
 
-            frame = np.array(image)
+            frame = np.array(image) # get np array which cv2 can handle
             frame = imutils.resize(frame, width=400)
 
             # grab frame dimensions and convert it to a blob
@@ -115,7 +116,7 @@ class DroneCamVision:
                         self.detect = 1
                         self.eventObjectDetected.set()
 
-            print(f'[INFO VISION] >> Frame output: {self.detect}')
+            # print(f'[INFO VISION] >> Frame output: {self.detect}')
 
             # show the output frame
             # cv2.imshow("Unity Feed", frame)

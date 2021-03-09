@@ -11,10 +11,9 @@ def normalise(v):
 
 # gets the global cartesian coordinates (ECEF) of a gps point
 def gps_to_cartesian(lat, long):
-    #lat = int
-    #long = int
-    radius = 6378100
-    # degrees to radians:
+    # radius of the earth
+    radius = 6371000
+    # convert coordinates from degrees to radians:
     lat = (lat / 180) * math.pi
     long = (long / 180) * math.pi
     # define vector in global cartesian coordinate frame
@@ -26,19 +25,17 @@ def gps_to_cartesian(lat, long):
 
 # gets the gps coordinate in lat long, given global cartesian (ECEF) coordinates
 def cartesian_to_gps(global_vec):
-    radius = 6378100
+    radius = 6371000
 
     # inverse of that done above to find cartesian
     lat = math.asin(global_vec[2]/radius)
-    long = math.asin(global_vec[1]/(radius*math.cos(lat)))
-    long2 = math.acos(global_vec[0]/(radius*math.cos(lat)))
+    long = math.atan2(global_vec[1], global_vec[0])
 
-    # since inverse sin is used for long, the answer is 180 - ...
-    lat = (lat / math.pi) * 180.0
-    long = 180 - (long / math.pi) * 180.0
-    long2 = (long2 / math.pi) * 180.0
+    # convert to degrees from radians
+    lat = math.degrees(lat)
+    long = math.degrees(long)
 
-    return lat, long2
+    return lat, long
 
 
 def set_origin(lat, long):
@@ -48,6 +45,7 @@ def set_origin(lat, long):
     r = np.array([x, y, z])  # vector in global cartesian
 
     # define rotation of new frame w.r.t origin of global frame
+    # find new up axis by normalising vector R in ecef global cartesian
     z = np.array([0, 0, 1])
     zn = normalise(r)  # up
 
@@ -86,6 +84,19 @@ def get_vector(local_frame, lat, long):
 # gets the gps coordinates of a point (vec_local) defined in the local cartesian frame
 def get_gps(local_frame, vec_local):
 
+    # if vector accidentally given as direction, correct to homogeneous position
+    if vec_local[3] == 0:
+        vec_local[3] = 1
+
+    # length of the local vector north, east
+    vec_mag = math.sqrt(math.pow(vec_local[0], 2) + math.pow(vec_local[1], 2))
+
+    # error based on distance from origin
+    err = math.sqrt(math.pow(6371000, 2) - math.pow(vec_mag, 2)) - 6371000
+
+    # add error to the the z to account for curvature of the earth
+    vec_local[2] = err
+
     # vec_local is a np.array in homogeneous coordinates, so [x y z 1]
     vec_global = np.matmul(local_frame, vec_local)
 
@@ -94,8 +105,7 @@ def get_gps(local_frame, vec_local):
 
     return lat, long
 
-
-# gets the coordinates of a circle about a given point lat long
+# gets the GPS coordinates of a circle about a given point lat long
 def get_circle_coords(lat, long, origin):
     radius = 2
     wp_pos = get_vector(origin, lat, long)
@@ -117,6 +127,7 @@ def get_circle_coords(lat, long, origin):
     return circle_lats, circle_longs
 
 
+# calculates the distance between two lat/long GPS positions
 def distance_between(lat1, long1, lat2, long2, origin):
 
     pos1 = get_vector(origin, lat1, long1)

@@ -5,17 +5,14 @@
 # File: Data_logging.py
 # Description:
 from datetime import datetime
-import dronekit
-import os
 # Havent implemented use of LEDs (gpiozero - simple interface to GPIO devices with Raspberry Pi)
 # https://gpiozero.readthedocs.io/en/stable/
-import time # for time.sleep(seconds)
 # from dronekit import connect # NEEDED?
 from collections import OrderedDict
-from Drone import Drone # IMPORT JORDANS FI
-import dronekit as dk
+
+
 class DataLogging:
-    def __init__ (self):
+    def __init__(self):
         self.data_file = None
         self.data = None
 

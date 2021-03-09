@@ -7,7 +7,7 @@ import math                          # import math library
 import threading
 from GPS import get_vector, get_gps, distance_between
 import numpy as np
-from TCP import TCP
+from TCP import TcpServer
 
 
 # Drone class
@@ -257,7 +257,7 @@ class Drone:
         self.eventThreadActive.clear()
 
     def handle_unity(self):
-        tcp = TCP(5598, 'UNITY')  # create instance of tcp class
+        tcp = TcpServer(5598, 'UNITY')  # create instance of tcp class
         tcp.bind_server_socket()
         tcp.listen_for_tcp()
 

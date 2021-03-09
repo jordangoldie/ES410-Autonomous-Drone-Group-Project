@@ -7,7 +7,7 @@ import math                          # import math library
 import threading
 from GPS import get_vector, get_gps, distance_between
 import numpy as np
-from TCP import TCP
+from TCP import TcpServer
 
 
 # Drone class
@@ -16,19 +16,10 @@ class Drone:
         try:
             self.vehicle = connect(connection_str)
             self.event_flag = 0
-            self.eventTakeOffComplete = threading.Event()
-            self.eventMissionComplete = threading.Event()
-            self.eventThreadActive = threading.Event()
-            self.eventLocationReached = threading.Event()
-            self.eventScanComplete = threading.Event()
-            self.eventPlantComplete = threading.Event()
-            self.eventDistanceThreadActive = threading.Event()
-            self.eventPlantLocationReached = threading.Event()
             self.origin = np.array
             self.vision_tcp = None
             self.detect = 0
-            self.eventObjectDetected = threading.Event()
-            self.eventCircleStart = threading.Event()
+
 
         except dk.APIException:
             print("Timeout")
@@ -36,9 +27,7 @@ class Drone:
     def arm_and_takeoff(self, aTargetAltitude):
         """
         Arms vehicle and fly to aTargetAltitude.
-        """
-        self.eventThreadActive.set()
-        print("[INFO Drone] Basic pre-arm checks")
+        """        print("[INFO Drone] Basic pre-arm checks")
         # Don't try to arm until autopilot is ready
         while not self.vehicle.is_armable:
             print(" [INFO Drone] Waiting for vehicle to initialise...")
@@ -67,25 +56,10 @@ class Drone:
                 break
             time.sleep(1)
 
-        self.eventTakeOffComplete.set()
-        self.eventThreadActive.clear()
-
     def get_current_location(self):
         current_location = self.vehicle.location.global_relative_frame
         # current_location = self.vehicle.location.global_relative_alt
         return current_location
-
-    def get_velocity(self):
-        velocity = self.vehicle.velocity
-        return velocity
-
-    def get_airspeed(self):
-        airspeed = self.vehicle.airspeed
-        return airspeed
-
-    def get_ground_speed(self):
-        ground_speed = self.vehicle.groundspeed
-        return ground_speed
 
     def get_attitude(self):
         attitude = self.vehicle.attitude
@@ -96,7 +70,6 @@ class Drone:
         return plant_location
 
     def fly_to_point(self, location, airspeed):
-        self.eventThreadActive.set()
         self.vehicle.airspeed = airspeed
         print("[INFO Drone] Flying towards point")
         self.vehicle.simple_goto(location)
@@ -106,8 +79,6 @@ class Drone:
             distance = distance_between(lat, long, location.lat, location.lon, self.origin)
             print("[INFO Drone] distance to point:", distance)
             if distance <= 1:
-                self.eventLocationReached.set()
-                self.eventThreadActive.clear()
                 break
 
             time.sleep(3)
@@ -115,17 +86,13 @@ class Drone:
         return print("[INFO Drone] location reached")
 
     def set_plant_flag(self):
-        self.eventThreadActive.set()
         for i in range(3):
             print("[INFO Drone] planting")
             time.sleep(1)
         print("[INFO Drone] planting complete")
-        self.eventPlantComplete.set()
-        self.eventThreadActive.clear()
 
     def return_home(self):
         self.vehicle.mode = VehicleMode("RTL")
-        self.eventThreadActive.set()
 
     def get_positional_data(self):
         lat = self.get_current_location().lat
@@ -224,17 +191,6 @@ class Drone:
                 self.vehicle.send_mavlink(msg)
                 time.sleep(duration)
 
-    '''def the_only_real_scan_shady(self, duration, radius):
-        self.eventThreadActive.set()
-        # change this later so it uses the current way point target
-        lat = self.get_current_location().lat
-        lon = self.get_current_location().lon
-        alt = self.get_current_location().alt
-        wp = np.array([lat, lon, alt])
-        self.manual_circle(wp, duration, radius)
-        print('[INFO Drone] scan complete')
-        self.eventScanComplete.set()
-        self.eventThreadActive.clear()'''
 
     def circle(self, duration, radius):
         vel_north, vel_east = self.circle_velocities(radius, duration)  # get velocities
@@ -243,7 +199,6 @@ class Drone:
         # move to outer edge of circle and yaw to centre
         # self.send_yaw(270, 90, 0)
         self.send_global_velocity(0, radius/2, 0, 2)
-        self.eventCircleStart.set()
         for i in range(len(vel_north)):
             self.send_global_velocity(vel_north[i], vel_east[i], 0, time_per)
 
@@ -256,10 +211,9 @@ class Drone:
         self.circle(duration, radius)
         self.vehicle.simple_goto(self.get_plant_location(lat, lon, alt))
         print('[INFO SCAN] >> scan complete')
-        self.eventScanComplete.set()
 
     def handle_unity(self):
-        tcp = TCP(5598, 'UNITY')  # create instance of tcp class
+        tcp = TcpServer(5598, 'UNITY')  # create instance of tcp class
         tcp.bind_server_socket()
         tcp.listen_for_tcp()
 
@@ -267,29 +221,3 @@ class Drone:
             string = self.get_positional_data()
             tcp.send_message(string)
 
-    def handle_vision(self):
-        tcp = TCP(5311, 'VISION')
-        tcp.bind_server_socket()
-        tcp.listen_for_tcp()
-
-        while True:
-            msg = tcp.receive_message()
-            self.detect = int(msg)
-            if self.detect == 1:
-                print(self.detect)
-
-    def scan_output(self, duration):
-        self.eventCircleStart.wait()
-        t_end = time.time() + duration
-        frame_count = 0
-        detect_count = 0
-        while True:
-            if time.time() > t_end:
-                print(f'[INFO VISION] >> total frames = {frame_count}')
-                percent = (detect_count / frame_count)*100
-                print(f'[INFO VISION] >> detected frames = {detect_count}, {percent}')
-                break
-            if self.detect == 1:
-                self.eventObjectDetected.set()
-                detect_count += 1
-            frame_count += 1

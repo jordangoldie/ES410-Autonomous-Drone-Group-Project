@@ -1,4 +1,5 @@
 from GPS import get_vector, set_origin, get_gps
+import numpy as np
 
 # origin Warwick=-35.36355729, 149.16460797, 0, 0
 latO = -35.36355729
@@ -12,6 +13,10 @@ local_frame = set_origin(latO, lonO)
 
 vec_local = get_vector(local_frame, latN, lonN)
 
-lat, long = get_gps(local_frame, vec_local)
+err, vec_mag, lat, long = get_gps(local_frame, vec_local)
+
+
+errorLat = latN - lat
+errorLon = lonN - long
 
 print('Done')

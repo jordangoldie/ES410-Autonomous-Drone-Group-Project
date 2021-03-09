@@ -8,13 +8,14 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 IP = input('Input IP >> ')
 client_socket.connect((IP, 5311))  # here we give the IP and port we WANT to connect to
 
-vision = DroneCamVision(1234)
-vision.model_setup()
+vision = DroneCamVision(1234)  # creates instance of vision.py DroneCamVision class with TCP to unity
+vision.model_setup() # loads the neural networks etc.
 
 data = b""
 payload_size = struct.calcsize(">L")
 
 vision.tcp.send_message('1')
+msg = 0
 
 while True:
 
@@ -76,6 +77,6 @@ while True:
                 y = startY - 15 if startY - 15 > 15 else startY + 15
                 cv2.putText(frame, label, (startX, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, vision.colours[5], 2)
                 vision.detect = 1
-                client_socket.send(bytes(f'{vision.detect}', "utf-8"))
 
+    client_socket.send(bytes(f'{vision.detect}', "utf-8"))
     print(vision.detect)
