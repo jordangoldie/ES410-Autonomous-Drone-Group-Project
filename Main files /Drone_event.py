@@ -35,7 +35,6 @@ class Drone:
             
             self.waypoint_count = 0                          # create waypoint counter     
             self.origin = set_origin(52.38255, -1.56156)     # set drone's origin
-            self.vision_tcp = None                           # 
             self.detect = 0                                  # create person detection variable
             
         # print timeout if connection failure
@@ -72,7 +71,7 @@ class Drone:
                 break
             time.sleep(1)
        
-        self.eventTakeOffComplete.set()      # take off complete flag
+        self.eventTakeOffComplete.set()      # set take off complete flag
         self.eventFlyingAltReached.set()     # set flying altitude reached flag
 
     # return drone current location
@@ -105,7 +104,7 @@ class Drone:
         plant_location = dk.LocationGlobalRelative(lat, lon, alt)
         return plant_location
 
-    # command drone to fly to given location given airspeed, plant flag to specify whether location requires planting
+    # command drone to fly to given location given airspeed, plant flag to specify if location requires planting
     def fly_to_point(self, location, airspeed, plant_flag): 
         
         # block fly to point command until take off is complete and flying altitude is reached
@@ -137,7 +136,8 @@ class Drone:
     # command drone to descend to target altitude
     def descend(self, target_alt):
         
-        self.eventLocationReached.wait()     # block descend command until target location reached
+        # block descend command until target location reached
+        self.eventLocationReached.wait()     
         
         location = self.get_current_location()                                               # return drone current location 
         new_position = dk.LocationGlobalRelative(location.lat, location.lon, target_alt)     # define new target location with same altitude
@@ -147,7 +147,6 @@ class Drone:
         while True:
             print('[INFO DESCEND] >> Altitude: ', self.vehicle.location.global_relative_frame.alt)       
             
-            # Break and return from function just above planting altitude.
             if self.vehicle.location.global_relative_frame.alt <= target_alt * 1.01:     # break from function if within 1 % of target altitude
                 print('[INFO DESCEND] >> Reached planting altitude')
                 self.eventPlantAltReached.set()                                          # set planting altitude reached flag
@@ -158,7 +157,8 @@ class Drone:
 
     def plant(self):
         
-        self.eventScanComplete.wait()     # block planting until scan is complete
+        # block planting until scan is complete
+        self.eventScanComplete.wait()     
         
         # if object (person) detected abort planting, otherwise plant 
         if self.eventObjectDetected.is_set():
@@ -171,12 +171,14 @@ class Drone:
                 time.sleep(1)
             print('[INFO PLANT] >> Planting complete')
             
-        self.eventPlantComplete.set()     # set plant complete flag
+        # set plant complete flag
+        self.eventPlantComplete.set()     
 
     # command drone to ascend to target altitude    
     def ascend(self, target_alt):
         
-        self.eventPlantComplete.wait()     # block ascend command until planting is complete
+        # block ascend command until planting is complete
+        self.eventPlantComplete.wait()     
         
         location = self.get_current_location()                                               # return drone current location 
         new_position = dk.LocationGlobalRelative(location.lat, location.lon, target_alt)     # define new target location with same altitude
@@ -202,10 +204,12 @@ class Drone:
                 
             time.sleep(1)     # pause between altitude checks
 
+    # command drone to return to home location and land
     def return_home(self):
-        # self.eventMissionComplete.wait()
-        self.vehicle.mode = VehicleMode("RTL")
-
+        # self.eventMissionComplete.wait() ###########################################################################
+        self.vehicle.mode = VehicleMode("RTL")     # set vehicle mode to RTL, causing drone to return home and land
+        
+    # send XYZ velocity commands to the drone to be excecuted for given duration
     def send_global_velocity(self, velocity_x, velocity_y, velocity_z, duration):
         msg = self.vehicle.message_factory.set_position_target_global_int_encode(
             0,  # time_boot_ms (not used)
