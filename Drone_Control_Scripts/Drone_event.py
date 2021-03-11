@@ -186,7 +186,11 @@ class Drone:
 
     # command drone to ascend to target altitude    
     def ascend(self, target_alt):
-        
+        # limit target altitude to within 1 and 50 m
+        if target_alt <= 1:
+            target_alt = 1
+        elif target_alt >= 50:
+            target_alt = 50
         
         # block ascend command until planting is complete
         self.eventPlantComplete.wait()     
