@@ -86,7 +86,7 @@ while True:
 
     time.sleep(2)     # pause 
 
-
+# complete mission thread
 complete_mission = threading.Thread(target=Hex.return_home)
 complete_mission.start()
 print('[INFO MAIN] >> complete mission thread')
