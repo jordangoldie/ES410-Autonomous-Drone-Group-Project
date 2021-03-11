@@ -129,7 +129,7 @@ class Drone:
             if distance <= 1:                             # break from function if within 1 m of target location                                      
                 if plant_flag == 1:                       # if planting location set location reached flag
                     self.eventLocationReached.set()                                                
-                if plant_flag == 0:                       # if not planting location reset thread sequence active flag                 
+                elif plant_flag == 0:                       # if not planting location reset thread sequence active flag                 
                     self.eventThreadSeqActive.clear()
                     self.waypoint_count += 1
                 break
