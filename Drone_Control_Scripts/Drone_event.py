@@ -43,7 +43,11 @@ class Drone:
 
     # arm drone and take off to target altitude
     def arm_and_takeoff(self, target_alt):
-        
+        # limit target altitude to within 1 and 50 m
+        if target_alt <= 1:
+            target_alt = 1
+        elif target_alt >= 50:
+            target_alt = 50
         print('[INFO ARM] >> Basic pre-arm checks')                         
         
         # block arm attempt until autopilot is ready
@@ -126,7 +130,8 @@ class Drone:
                 if plant_flag == 1:                       # if planting location set location reached flag
                     self.eventLocationReached.set()                                                
                 if plant_flag == 0:                       # if not planting location reset thread sequence active flag                 
-                    self.eventThreadSeqActive.clear()     
+                    self.eventThreadSeqActive.clear()
+                    self.waypoint_count += 1
                 break
 
             time.sleep(3)     # pause between distance checks
@@ -135,7 +140,12 @@ class Drone:
 
     # command drone to descend to target altitude
     def descend(self, target_alt):
-        
+        # limit target altitude to within 1 and 50 m
+        if target_alt <= 1:
+            target_alt = 1
+        elif target_alt >= 50:
+            target_alt = 50
+            
         # block descend command until target location reached
         self.eventLocationReached.wait()     
         
@@ -176,6 +186,7 @@ class Drone:
 
     # command drone to ascend to target altitude    
     def ascend(self, target_alt):
+        
         
         # block ascend command until planting is complete
         self.eventPlantComplete.wait()     
